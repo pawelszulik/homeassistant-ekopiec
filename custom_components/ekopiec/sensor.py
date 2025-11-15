@@ -29,31 +29,38 @@ _LOGGER = logging.getLogger(__name__)
 SENSOR_TYPES: dict[str, dict[str, Any]] = {
     # Boiler temperatures
     "kot_value": {
-        "name": "Boiler Temperature",
+        "name": "Temperatura Kot�a",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
     "kot_tzad": {
-        "name": "Boiler Target Temperature",
+        "name": "Temperatura Zadana Kot�a",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
     "tpow_value": {
-        "name": "Return Temperature",
+        "name": "Temperatura powrotu kot�a",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
     "tcwu_value": {
-        "name": "DHW Temperature",
+        "name": "Temperatura CWU",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
     "tcwu_tzad": {
-        "name": "DHW Target Temperature",
+        "name": "Temperatura zadana",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    # Exhaust/Flue temperature
+    "tsp_value": {
+        "name": "Temperatura spalin",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
@@ -65,75 +72,45 @@ SENSOR_TYPES: dict[str, dict[str, Any]] = {
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
-    "ob2_temp": {
-        "name": "Circuit 2 Temperature",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "ob3_temp": {
-        "name": "Circuit 3 Temperature",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "ob4_temp": {
-        "name": "Circuit 4 Temperature",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "ob5_temp": {
-        "name": "Circuit 5 Temperature",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "ob6_temp": {
-        "name": "Circuit 6 Temperature",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
     # Fuel sensors
     "paliwo_poziom": {
-        "name": "Fuel Level",
+        "name": "Poziom paliwa",
         "device_class": None,
         "unit": PERCENTAGE,
         "state_class": SensorStateClass.MEASUREMENT,
     },
     "paliwo_czas_pracy": {
-        "name": "Fuel Runtime",
+        "name": "Czas pracy na paliwie",
         "device_class": SensorDeviceClass.DURATION,
         "unit": UnitOfTime.HOURS,
         "state_class": SensorStateClass.TOTAL_INCREASING,
     },
     "paliwo_data_zasypania": {
-        "name": "Fuel Refill Date",
+        "name": "Data zasypania kot�a",
         "device_class": SensorDeviceClass.TIMESTAMP,
         "unit": None,
         "state_class": None,
     },
     "paliwo_ilosc": {
-        "name": "Fuel Amount",
+        "name": "Ilo�� w�gla",
         "device_class": None,
         "unit": "kg",
         "state_class": SensorStateClass.MEASUREMENT,
     },
     "paliwo_zuzycie": {
-        "name": "Fuel Consumption",
+        "name": "Zu�ycie w kg\h",
         "device_class": None,
         "unit": "kg/h",
         "state_class": SensorStateClass.MEASUREMENT,
     },
     "paliwo_pozostalo": {
-        "name": "Fuel Remaining",
+        "name": "Zosta�o w�gla",
         "device_class": None,
         "unit": "kg",
         "state_class": SensorStateClass.MEASUREMENT,
     },
     "paliwo_dni_do_zasypania": {
-        "name": "Days Until Refill",
+        "name": "Ilo�� do do zasypania",
         "device_class": None,
         "unit": "days",
         "state_class": SensorStateClass.MEASUREMENT,
@@ -181,22 +158,103 @@ SENSOR_TYPES: dict[str, dict[str, Any]] = {
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
-    # Other sensors
-    "device_soft_version": {
-        "name": "Software Version",
+    "act_dm_speed": {
+        "name": "Aktualna moc dmuchawy",
+        "device_class": None,
+        "unit": PERCENTAGE,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    # Operating modes
+    "zima_lato": {
+        "name": "Tryb Zima/Lato",
         "device_class": None,
         "unit": None,
         "state_class": None,
     },
-    "device_hard_version": {
-        "name": "Hardware Version",
+    "zima_lato_state": {
+        "name": "Tryb Zima/Lato",
         "device_class": None,
         "unit": None,
         "state_class": None,
     },
-    "device_type": {
-        "name": "Device Type",
+    "tryb_auto_state": {
+        "name": "Tryb Pracy",
         "device_class": None,
+        "unit": None,
+        "state_class": None,
+    },
+    # Valve 4D position sensors (for each circuit)
+    "ob1_zaw4d_pos": {
+        "name": "Zawór 4D Obwód 1 - Pozycja otwarcia",
+        "device_class": None,
+        "unit": PERCENTAGE,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    # Additional temperature sensors
+    "tpod_value": {
+        "name": "Temperatura podajnika",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "twew_value": {
+        "name": "Temperatura wewnętrzna",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "tzew_value": {
+        "name": "Temperatura zewnętrzna",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "t1_value": {
+        "name": "Temperatura za zaworem",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "t2_value": {
+        "name": "Temperatura wewnętrzna CO2",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    # Additional fuel sensors
+    "fuel_level": {
+        "name": "Poziom paliwa",
+        "device_class": None,
+        "unit": PERCENTAGE,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "fuel_level_enum": {
+        "name": "Poziom paliwa (enum)",
+        "device_class": None,
+        "unit": None,
+        "state_class": None,
+    },
+    "pod_run_time": {
+        "name": "Czas pracy podajnika",
+        "device_class": SensorDeviceClass.DURATION,
+        "unit": UnitOfTime.HOURS,
+        "state_class": SensorStateClass.TOTAL_INCREASING,
+    },
+    "pod_run_time_str": {
+        "name": "Czas pracy podajnika (tekst)",
+        "device_class": None,
+        "unit": None,
+        "state_class": None,
+    },
+    "time_to_empty": {
+        "name": "Czas do opróżnienia zasobnika",
+        "device_class": SensorDeviceClass.DURATION,
+        "unit": UnitOfTime.HOURS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "next_fuel_time": {
+        "name": "Data kolejnego zasypu",
+        "device_class": SensorDeviceClass.TIMESTAMP,
         "unit": None,
         "state_class": None,
     },
@@ -216,6 +274,11 @@ async def async_setup_entry(
     show_fuel = entry.options.get("show_fuel", True)
     show_dhw = entry.options.get("show_dhw", True)
     
+    _LOGGER.info(
+        "Setting up sensors: show_temps=%s, show_fuel=%s, show_dhw=%s",
+        show_temps, show_fuel, show_dhw
+    )
+    
     entities = []
     
     for sensor_key, sensor_config in SENSOR_TYPES.items():
@@ -225,18 +288,36 @@ async def async_setup_entry(
                 _LOGGER.debug("Skipping temperature sensor: %s", sensor_key)
                 continue
         
-        if "paliwo" in sensor_key.lower() or "fuel" in sensor_config["name"].lower():
+        # Check for fuel sensors - check both key and name (name might be in Polish now)
+        is_fuel_sensor = (
+            "paliwo" in sensor_key.lower() or 
+            "fuel" in sensor_key.lower() or
+            "fuel" in sensor_config.get("name", "").lower() or
+            "paliwo" in sensor_config.get("name", "").lower() or
+            "węgla" in sensor_config.get("name", "").lower() or
+            "zasypania" in sensor_config.get("name", "").lower()
+        )
+        
+        if is_fuel_sensor:
             if not show_fuel:
-                _LOGGER.debug("Skipping fuel sensor: %s", sensor_key)
+                _LOGGER.debug("Skipping fuel sensor: %s (show_fuel=%s)", sensor_key, show_fuel)
                 continue
+            _LOGGER.debug("Creating fuel sensor: %s", sensor_key)
         
         if "cwu" in sensor_key.lower() or "dhw" in sensor_key.lower():
             if not show_dhw:
                 _LOGGER.debug("Skipping DHW sensor: %s", sensor_key)
                 continue
         
-        if sensor_key in coordinator.data:
-            entities.append(EkopiecSensor(coordinator, sensor_key, sensor_config))
+        # Create entity even if data not available (will show as unavailable)
+        entities.append(EkopiecSensor(coordinator, sensor_key, sensor_config))
+    
+    _LOGGER.info("Created %d sensor entities", len(entities))
+    fuel_sensors = [e._sensor_key for e in entities if "paliwo" in e._sensor_key.lower()]
+    if fuel_sensors:
+        _LOGGER.info("Fuel sensors created: %s", fuel_sensors)
+    else:
+        _LOGGER.warning("No fuel sensors created! Check show_fuel option and sensor definitions.")
     
     async_add_entities(entities)
 

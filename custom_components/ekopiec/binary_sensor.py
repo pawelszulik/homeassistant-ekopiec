@@ -133,8 +133,8 @@ async def async_setup_entry(
     
     entities = []
     for alarm_key, alarm_config in ALARM_TYPES.items():
-        if alarm_key in coordinator.data:
-            entities.append(EkopiecAlarm(coordinator, alarm_key, alarm_config))
+        # Create entity even if data not available (will show as unavailable)
+        entities.append(EkopiecAlarm(coordinator, alarm_key, alarm_config))
     
     async_add_entities(entities)
 

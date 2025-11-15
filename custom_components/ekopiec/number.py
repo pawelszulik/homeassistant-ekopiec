@@ -192,8 +192,8 @@ async def async_setup_entry(
     
     entities = []
     for number_key, number_config in NUMBER_TYPES.items():
-        if number_key in coordinator.data:
-            entities.append(EkopiecNumber(coordinator, number_key, number_config))
+        # Create entity even if data not available (will show as unavailable)
+        entities.append(EkopiecNumber(coordinator, number_key, number_config))
     
     async_add_entities(entities)
 

@@ -118,6 +118,14 @@ class EkopiecOptionsFlowHandler(config_entries.OptionsFlow):
                     "show_numbers",
                     default=options.get("show_numbers", True),
                 ): cv.boolean,
+                vol.Optional(
+                    "force_all_circuits",
+                    default=options.get("force_all_circuits", False),
+                ): cv.boolean,
+                vol.Optional(
+                    "force_all_entities",
+                    default=options.get("force_all_entities", True),
+                ): cv.boolean,
             }),
         )
 

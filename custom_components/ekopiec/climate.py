@@ -48,9 +48,13 @@ async def async_setup_entry(
         return
     
     entities = []
+    # Option to force create all circuits (even if not active)
+    force_all = entry.options.get("force_all_circuits", False)
+    
     for circuit_num in range(1, HEATING_CIRCUITS + 1):
         circuit_type = coordinator.data.get(f"ob{circuit_num}_typ")
-        if circuit_type and circuit_type != "0":
+        # Create if active OR if force_all is enabled
+        if force_all or (circuit_type and circuit_type != "0"):
             entities.append(EkopiecClimate(coordinator, circuit_num))
     
     async_add_entities(entities)

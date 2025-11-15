@@ -82,8 +82,8 @@ async def async_setup_entry(
     
     entities = []
     for switch_key, switch_config in SWITCH_TYPES.items():
-        if switch_key in coordinator.data:
-            entities.append(EkopiecSwitch(coordinator, switch_key, switch_config))
+        # Create entity even if data not available (will show as unavailable)
+        entities.append(EkopiecSwitch(coordinator, switch_key, switch_config))
     
     async_add_entities(entities)
 

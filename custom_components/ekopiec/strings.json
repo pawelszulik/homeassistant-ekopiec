@@ -33,7 +33,9 @@
           "show_switches": "Show Output Controls - Pumps, Blower, Valves (8 switches)",
           "show_fuel": "Show Fuel Management - Level, Runtime, Refuel Date (7 sensors)",
           "show_alarms": "Show Alarm/Error Status - All system alarms (24 binary sensors)",
-          "show_numbers": "Show Controllable Parameters - Setpoints, Timings (50+ numbers)"
+          "show_numbers": "Show Controllable Parameters - Setpoints, Timings (50+ numbers)",
+          "force_all_circuits": "Force create all heating circuits (even if not active in controller)",
+          "force_all_entities": "Create all entities even if data not available (default: ON)"
         }
       }
     }
