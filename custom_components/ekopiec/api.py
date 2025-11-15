@@ -111,10 +111,19 @@ class ECoalApiClient:
             raise ConnectionError(f"Connection error: {err}") from err
     
     async def set_parameter(self, parameter: str, value: Any) -> bool:
-        """Set parameter via /setregister.cgi?device=0&property=value
+        """Set parameter on the controller with retry logic.
         
-        Response is XML: <cmd status='ok'></cmd>
-        Includes retry logic and validation.
+        Args:
+            parameter: Parameter name
+            value: Value to set
+            
+        Returns:
+            True if successful, False otherwise
+            
+        Retry logic:
+            - 3 maximum attempts
+            - 1 second delay between retries
+            - Retries on timeout or network errors
         """
         url = f"{self.base_url}/setregister.cgi"
         params = {"device": "0", parameter: str(value)}
@@ -122,7 +131,6 @@ class ECoalApiClient:
         if self._session is None:
             raise RuntimeError("Session not initialized")
         
-        # Retry logic - up to 3 attempts
         max_retries = 3
         retry_count = 0
         
@@ -141,51 +149,86 @@ class ECoalApiClient:
                             content = await response.text()
                             
                             try:
-                                # Parse XML response
+                                # Parse XML response: <cmd status='ok'></cmd>
                                 root = ET.fromstring(content)
                                 status = root.get('status')
                                 
                                 if status and status.lower() == 'ok':
                                     _LOGGER.debug(
-                                        "Set %s=%s success",
+                                        "Successfully set %s to %s",
                                         parameter, value
                                     )
                                     return True
                                 else:
                                     _LOGGER.warning(
-                                        "Set %s=%s failed: status=%s (retry %d/%d)",
-                                        parameter, value, status, retry_count + 1, max_retries
+                                        "Set %s failed: status=%s (attempt %d/%d)",
+                                        parameter, status, retry_count + 1, max_retries
                                     )
+                                    # Retry on error status
                                     retry_count += 1
                                     if retry_count < max_retries:
-                                        await asyncio.sleep(1)  # Wait before retry
-                                    continue
+                                        _LOGGER.debug(
+                                            "Retrying in 1 second (attempt %d/%d)...",
+                                            retry_count + 1, max_retries
+                                        )
+                                        await asyncio.sleep(1)
+                                        continue
+                                
                             except ET.ParseError as e:
-                                _LOGGER.error("XML parse error: %s (retry %d/%d)", e, retry_count + 1, max_retries)
+                                _LOGGER.warning(
+                                    "Failed to parse XML response: %s (attempt %d/%d)",
+                                    e, retry_count + 1, max_retries
+                                )
                                 retry_count += 1
                                 if retry_count < max_retries:
+                                    _LOGGER.debug(
+                                        "Retrying in 1 second (attempt %d/%d)...",
+                                        retry_count + 1, max_retries
+                                    )
                                     await asyncio.sleep(1)
-                                continue
+                                    continue
                         else:
-                            _LOGGER.warning("HTTP %s (retry %d/%d)", response.status, retry_count + 1, max_retries)
+                            _LOGGER.warning(
+                                "HTTP %s (attempt %d/%d)",
+                                response.status, retry_count + 1, max_retries
+                            )
                             retry_count += 1
                             if retry_count < max_retries:
+                                _LOGGER.debug(
+                                    "Retrying in 1 second (attempt %d/%d)...",
+                                    retry_count + 1, max_retries
+                                )
                                 await asyncio.sleep(1)
-                            continue
+                                continue
             
-            except asyncio.TimeoutError as err:
-                _LOGGER.warning("Timeout setting %s (retry %d/%d)", parameter, retry_count + 1, max_retries)
+            except asyncio.TimeoutError:
+                _LOGGER.warning(
+                    "Timeout setting %s (attempt %d/%d)",
+                    parameter, retry_count + 1, max_retries
+                )
                 retry_count += 1
                 if retry_count < max_retries:
+                    _LOGGER.debug(
+                        "Retrying in 1 second (attempt %d/%d)...",
+                        retry_count + 1, max_retries
+                    )
                     await asyncio.sleep(1)
-                continue
+                    continue
+            
             except aiohttp.ClientError as err:
-                _LOGGER.warning("Connection error: %s (retry %d/%d)", err, retry_count + 1, max_retries)
+                _LOGGER.warning(
+                    "Connection error setting %s: %s (attempt %d/%d)",
+                    parameter, err, retry_count + 1, max_retries
+                )
                 retry_count += 1
                 if retry_count < max_retries:
+                    _LOGGER.debug(
+                        "Retrying in 1 second (attempt %d/%d)...",
+                        retry_count + 1, max_retries
+                    )
                     await asyncio.sleep(1)
-                continue
+                    continue
         
-        _LOGGER.error("Failed to set %s after %d retries", parameter, max_retries)
+        _LOGGER.error("Failed to set %s after %d attempts", parameter, max_retries)
         return False
 

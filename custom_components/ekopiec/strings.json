@@ -27,11 +27,11 @@
         "title": "ekopiec Configuration",
         "description": "Choose which entity categories to display",
         "data": {
-          "show_temperatures": "Show Temperature Sensors (11 sensors)",
-          "show_climate": "Show Heating Circuits - Climate Control (6 circuits)",
-          "show_dhw": "Show DHW/CWU Parameters (7 sensors)",
+          "show_temperatures": "Show Temperature Sensors (11 sensors - boiler, return, DHW, heating circuits)",
+          "show_climate": "Show Heating Circuits - Climate Control (6 circuits with temperature control)",
+          "show_dhw": "Show DHW/CWU Parameters (7 sensors - temperature, pressure, level, runtime)",
           "show_switches": "Show Output Controls - Pumps, Blower, Valves (8 switches)",
-          "show_fuel": "Show Fuel Management - Level, Runtime, Refill Date (7 sensors)",
+          "show_fuel": "Show Fuel Management - Level, Runtime, Refuel Date (7 sensors)",
           "show_alarms": "Show Alarm/Error Status - All system alarms (24 binary sensors)",
           "show_numbers": "Show Controllable Parameters - Setpoints, Timings (50+ numbers)"
         }

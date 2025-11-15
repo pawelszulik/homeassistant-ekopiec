@@ -27,9 +27,9 @@
         "title": "Konfiguracja ekopiec",
         "description": "Wybierz które kategorie encji chcesz wyświetlać",
         "data": {
-          "show_temperatures": "Pokaż czujniki temperatury (11 sensorów)",
-          "show_climate": "Pokaż obwody grzewcze - sterowanie temperaturą (6 obwodów)",
-          "show_dhw": "Pokaż parametry CWU (7 sensorów)",
+          "show_temperatures": "Pokaż czujniki temperatury (11 sensorów - kocioł, powrót, CWU, obwody)",
+          "show_climate": "Pokaż obwody grzewcze - sterowanie klimatem (6 obwodów)",
+          "show_dhw": "Pokaż parametry CWU (7 sensorów - temperatura, ciśnienie, poziom, czas pracy)",
           "show_switches": "Pokaż sterowanie wyjściami - pompy, dmuchawa, zawory (8 przełączników)",
           "show_fuel": "Pokaż zarządzanie paliwem - poziom, czas pracy, data zasypania (7 sensorów)",
           "show_alarms": "Pokaż stany alarmów - wszystkie alarmy systemowe (24 sensory)",

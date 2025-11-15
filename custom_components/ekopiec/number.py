@@ -32,8 +32,24 @@ NUMBER_TYPES: dict[str, dict[str, Any]] = {
         "max_value": 85,
         "step": 0.5,
     },
+    "kot_tobn": {
+        "name": "Boiler Reduced Temperature",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "min_value": 10,
+        "max_value": 85,
+        "step": 0.5,
+    },
     "cwu_tzad": {
         "name": "DHW Target Temperature",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "min_value": 10,
+        "max_value": 85,
+        "step": 0.5,
+    },
+    "cwu_tobn": {
+        "name": "DHW Reduced Temperature",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
         "min_value": 10,
@@ -61,52 +77,66 @@ NUMBER_TYPES: dict[str, dict[str, Any]] = {
         "max_value": 3600,
         "step": 1,
     },
+    "p_pod_wait": {
+        "name": "Feeder Wait Time",
+        "unit": UnitOfTime.SECONDS,
+        "min_value": 1,
+        "max_value": 300,
+        "step": 1,
+    },
+    "p_pod_cnt": {
+        "name": "Feeder Repetitions",
+        "unit": "repetitions",
+        "min_value": 1,
+        "max_value": 20,
+        "step": 1,
+    },
     "ob1_tzad": {
-        "name": "Circuit 1 Target Temperature",
+        "name": "Heating Circuit 1 Target Temperature",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
-        "min_value": 5,
-        "max_value": 60,
+        "min_value": 10,
+        "max_value": 85,
         "step": 0.5,
     },
     "ob2_tzad": {
-        "name": "Circuit 2 Target Temperature",
+        "name": "Heating Circuit 2 Target Temperature",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
-        "min_value": 5,
-        "max_value": 60,
+        "min_value": 10,
+        "max_value": 85,
         "step": 0.5,
     },
     "ob3_tzad": {
-        "name": "Circuit 3 Target Temperature",
+        "name": "Heating Circuit 3 Target Temperature",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
-        "min_value": 5,
-        "max_value": 60,
+        "min_value": 10,
+        "max_value": 85,
         "step": 0.5,
     },
     "ob4_tzad": {
-        "name": "Circuit 4 Target Temperature",
+        "name": "Heating Circuit 4 Target Temperature",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
-        "min_value": 5,
-        "max_value": 60,
+        "min_value": 10,
+        "max_value": 85,
         "step": 0.5,
     },
     "ob5_tzad": {
-        "name": "Circuit 5 Target Temperature",
+        "name": "Heating Circuit 5 Target Temperature",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
-        "min_value": 5,
-        "max_value": 60,
+        "min_value": 10,
+        "max_value": 85,
         "step": 0.5,
     },
     "ob6_tzad": {
-        "name": "Circuit 6 Target Temperature",
+        "name": "Heating Circuit 6 Target Temperature",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
-        "min_value": 5,
-        "max_value": 60,
+        "min_value": 10,
+        "max_value": 85,
         "step": 0.5,
     },
     "p_dm_min": {
@@ -214,7 +244,14 @@ class EkopiecNumber(CoordinatorEntity, NumberEntity):
             return None
     
     async def async_set_native_value(self, value: float) -> None:
-        """Set new value with validation."""
+        """Set new value with validation.
+        
+        Args:
+            value: New value to set
+            
+        Raises:
+            ValueError: If value is out of range
+        """
         # Validate value is within range
         if value < self._attr_native_min_value or value > self._attr_native_max_value:
             _LOGGER.error(

@@ -62,12 +62,20 @@ class EkopiecDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         parameter: str, 
         value: Any
     ) -> bool:
-        """Set parameter with rate limiting."""
+        """Set parameter with rate limiting.
+        
+        Args:
+            parameter: Parameter name
+            value: Value to set
+            
+        Returns:
+            True if successful, False if rate limited
+        """
         # Check rate limit
         if not self._rate_limiter.should_allow():
             wait_time = self._rate_limiter.get_wait_time()
             _LOGGER.warning(
-                "Rate limit active. Wait %.1f seconds before next request",
+                "Rate limit active. Wait %.1f seconds before next request.",
                 wait_time
             )
             return False
@@ -76,7 +84,7 @@ class EkopiecDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         success = await self.api.set_parameter(parameter, value)
         
         if success:
-            # Request refresh immediately
+            # Request refresh immediately after successful set
             await self.async_request_refresh()
         
         return success

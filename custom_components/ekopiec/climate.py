@@ -117,14 +117,33 @@ class EkopiecClimate(CoordinatorEntity, ClimateEntity):
         return HVAC_MODE_MAP.get(str(mode_value), HVACMode.OFF)
     
     async def async_set_temperature(self, **kwargs: Any) -> None:
-        """Set new target temperature."""
+        """Set new target temperature with validation.
+        
+        Args:
+            **kwargs: New temperature (temperature key)
+        """
         temperature = kwargs.get(ATTR_TEMPERATURE)
         if temperature is None:
             return
         
-        temp_key = f"ob{self._circuit_num}_tzad"
-        success = await self.coordinator.set_parameter_with_limit(temp_key, temperature)
+        # Validate temperature is within valid range (10-85°C)
+        min_temp = 10
+        max_temp = 85
+        if temperature < min_temp or temperature > max_temp:
+            _LOGGER.error(
+                "Temperature %s out of range [%s, %s] for circuit %d",
+                temperature, min_temp, max_temp, self._circuit_num
+            )
+            raise ValueError(
+                f"Temperature must be between {min_temp} and {max_temp}°C"
+            )
         
+        # Determine which parameter to set based on preset mode
+        # For now, always use tzad (target temperature)
+        # TODO: Add preset mode support if needed
+        temp_key = f"ob{self._circuit_num}_tzad"
+        
+        success = await self.coordinator.set_parameter_with_limit(temp_key, temperature)
         if success:
             await self.coordinator.async_request_refresh()
         else:
