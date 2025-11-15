@@ -1,0 +1,42 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to ekopiec",
+        "description": "Enter the connection details for your eCoal controller",
+        "data": {
+          "host": "IP Address",
+          "port": "Port",
+          "username": "Username",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to the controller",
+      "invalid_auth": "Invalid authentication credentials",
+      "unknown": "Unexpected error occurred"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "ekopiec Configuration",
+        "description": "Choose which entity categories to display",
+        "data": {
+          "show_temperatures": "Show Temperature Sensors (11 sensors)",
+          "show_climate": "Show Heating Circuits - Climate Control (6 circuits)",
+          "show_dhw": "Show DHW/CWU Parameters (7 sensors)",
+          "show_switches": "Show Output Controls - Pumps, Blower, Valves (8 switches)",
+          "show_fuel": "Show Fuel Management - Level, Runtime, Refill Date (7 sensors)",
+          "show_alarms": "Show Alarm/Error Status - All system alarms (24 binary sensors)",
+          "show_numbers": "Show Controllable Parameters - Setpoints, Timings (50+ numbers)"
+        }
+      }
+    }
+  }
+}
+
