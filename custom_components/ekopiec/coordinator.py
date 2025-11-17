@@ -61,15 +61,17 @@ class EkopiecDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             raise UpdateFailed(f"Error communicating with controller: {err}") from err
     
     def _convert_timestamps(self, data: Dict[str, Any]) -> None:
-        """Convert Unix timestamps to datetime strings.
+        """Convert Unix timestamps to ISO datetime strings.
         
         Converts timestamps for:
         - add_fuel_time: Last fuel refill timestamp
         - next_fuel_time: Next fuel refill timestamp
+        - datetime: Current date/time from controller
         
         Args:
             data: Device data dictionary to update with converted values
         """
+        # Unix timestamp fields (need conversion from seconds)
         timestamp_fields = ["add_fuel_time", "next_fuel_time"]
         
         for field in timestamp_fields:
@@ -88,9 +90,9 @@ class EkopiecDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                     _LOGGER.debug("Skipping non-numeric timestamp for %s: %s", field, timestamp_value)
                     continue
                 
-                # Convert to datetime and format as YYYY-MM-DD HH:MM:SS
+                # Convert to datetime and format as ISO string (YYYY-MM-DDTHH:MM:SS)
                 dt = datetime.fromtimestamp(timestamp)
-                data[field] = dt.strftime("%Y-%m-%d %H:%M:%S")
+                data[field] = dt.isoformat()
                 
                 _LOGGER.debug(
                     "Converted %s: %s -> %s",
@@ -100,6 +102,14 @@ class EkopiecDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             except (ValueError, OSError, OverflowError) as err:
                 _LOGGER.warning("Cannot convert timestamp for %s (%s): %s", field, timestamp_value, err)
                 data[field] = None
+        
+        # datetime field is already in ISO format (2025-11-17T22:45:33Z), just validate it
+        datetime_value = data.get("datetime")
+        if datetime_value and isinstance(datetime_value, str):
+            # Remove 'Z' suffix if present and ensure it's valid
+            if datetime_value.endswith('Z'):
+                data["datetime"] = datetime_value[:-1]
+            _LOGGER.debug("Datetime field: %s", data["datetime"])
     
     async def set_parameter_with_limit(
         self, 

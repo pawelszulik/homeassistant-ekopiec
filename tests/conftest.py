@@ -36,7 +36,6 @@ def sample_device_data():
         "tpow_value": "42.3",
         "tpod_value": "35.0",
         "tcwu_value": "55.2",
-        "t1_value": "50.0",
         "tsp_value": "150.0",
         # Blower sensors
         "dm_rms": "75",
@@ -74,7 +73,6 @@ def sample_device_data():
         "out_cwu": "0",
         "out_miesz": "0",
         "out_dm": "1",
-        "out_zaw4d": "1",
         # Alarms
         "alarm_kot_przegrzanie": "0",
         "alarm_paliwo_brak": "0",
@@ -106,13 +104,5 @@ def mock_config_entry():
         "username": "test_user",
         "password": "test_pass",
     }
-    entry.options = {
-        "show_temperatures": True,
-        "show_climate": True,
-        "show_dhw": True,
-        "show_switches": True,
-        "show_fuel": True,
-        "show_alarms": False,
-        "show_numbers": True,
-    }
+    entry.options = {}
     return entry

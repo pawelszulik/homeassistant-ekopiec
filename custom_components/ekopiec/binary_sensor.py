@@ -36,10 +36,6 @@ OUTPUT_TYPES: dict[str, dict[str, Any]] = {
         "name": "Dmuchawa",
         "device_class": BinarySensorDeviceClass.RUNNING,
     },
-    "out_zaw4d": {
-        "name": "Zawór 4D",
-        "device_class": BinarySensorDeviceClass.OPENING,
-    },
 }
 
 # Alarm sensors
@@ -153,16 +149,13 @@ async def async_setup_entry(
     
     entities = []
     
-    # Always create output status sensors (they are essential for monitoring)
+    # Create output status sensors
     for output_key, output_config in OUTPUT_TYPES.items():
         entities.append(EkopiecBinarySensor(coordinator, output_key, output_config))
     
-    # Check if alarms should be shown
-    if entry.options.get("show_alarms", False):
-        for alarm_key, alarm_config in ALARM_TYPES.items():
-            entities.append(EkopiecBinarySensor(coordinator, alarm_key, alarm_config))
-    else:
-        _LOGGER.debug("Alarm entities disabled in options")
+    # Create alarm sensors
+    for alarm_key, alarm_config in ALARM_TYPES.items():
+        entities.append(EkopiecBinarySensor(coordinator, alarm_key, alarm_config))
     
     async_add_entities(entities)
 

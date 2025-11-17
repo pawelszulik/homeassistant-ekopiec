@@ -4,7 +4,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from homeassistant.components.number import NumberEntity
+from homeassistant.components.number import NumberEntity, NumberMode
 from homeassistant.components.sensor import SensorDeviceClass
 from homeassistant.const import (
     PERCENTAGE,
@@ -139,14 +139,8 @@ async def async_setup_entry(
     """Set up number entities."""
     coordinator: EkopiecDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     
-    # Check if numbers should be shown
-    if not entry.options.get("show_numbers", True):
-        _LOGGER.debug("Number entities disabled in options")
-        return
-    
     entities = []
     for number_key, number_config in NUMBER_TYPES.items():
-        # Create entity even if data not available (will show as unavailable)
         entities.append(EkopiecNumber(coordinator, number_key, number_config))
     
     async_add_entities(entities)
@@ -174,6 +168,9 @@ class EkopiecNumber(CoordinatorEntity, NumberEntity):
         self._attr_native_min_value = config.get("min_value", 0)
         self._attr_native_max_value = config.get("max_value", 100)
         self._attr_native_step = config.get("step", 1)
+        
+        # Set mode to box (input field) instead of slider
+        self._attr_mode = NumberMode.BOX
         
         # Set units and device class
         if "unit" in config:

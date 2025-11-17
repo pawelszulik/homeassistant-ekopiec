@@ -51,12 +51,6 @@ SENSOR_TYPES: dict[str, dict[str, Any]] = {
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
-    "t1_value": {
-        "name": "Temperatura za zaworem",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
     "tsp_value": {
         "name": "Temperatura spalin",
         "device_class": SensorDeviceClass.TEMPERATURE,
@@ -220,43 +214,9 @@ async def async_setup_entry(
     """Set up sensor entities."""
     coordinator: EkopiecDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     
-    # Check filter options
-    show_temps = entry.options.get("show_temperatures", True)
-    show_fuel = entry.options.get("show_fuel", True)
-    show_dhw = entry.options.get("show_dhw", True)
-    
-    _LOGGER.info(
-        "Setting up sensors: show_temps=%s, show_fuel=%s, show_dhw=%s",
-        show_temps, show_fuel, show_dhw
-    )
-    
     entities = []
     
     for sensor_key, sensor_config in SENSOR_TYPES.items():
-        # Skip based on options
-        if "temp" in sensor_key.lower() or "tkot" in sensor_key.lower() or "tpow" in sensor_key.lower() or "tcwu" in sensor_key.lower():
-            if not show_temps:
-                _LOGGER.debug("Skipping temperature sensor: %s", sensor_key)
-                continue
-        
-        # Check for fuel sensors
-        is_fuel_sensor = (
-            "fuel" in sensor_key.lower() or
-            "pod_run" in sensor_key.lower()
-        )
-        
-        if is_fuel_sensor:
-            if not show_fuel:
-                _LOGGER.debug("Skipping fuel sensor: %s (show_fuel=%s)", sensor_key, show_fuel)
-                continue
-            _LOGGER.debug("Creating fuel sensor: %s", sensor_key)
-        
-        if "cwu" in sensor_key.lower():
-            if not show_dhw:
-                _LOGGER.debug("Skipping DHW sensor: %s", sensor_key)
-                continue
-        
-        # Create entity even if data not available (will show as unavailable)
         entities.append(EkopiecSensor(coordinator, sensor_key, sensor_config))
     
     _LOGGER.info("Created %d sensor entities", len(entities))

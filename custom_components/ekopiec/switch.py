@@ -38,14 +38,8 @@ async def async_setup_entry(
     """Set up switch entities."""
     coordinator: EkopiecDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     
-    # Check if switches should be shown
-    if not entry.options.get("show_switches", True):
-        _LOGGER.debug("Switch entities disabled in options")
-        return
-    
     entities = []
     for switch_key, switch_config in SWITCH_TYPES.items():
-        # Create entity even if data not available (will show as unavailable)
         entities.append(EkopiecSwitch(coordinator, switch_key, switch_config))
     
     async_add_entities(entities)

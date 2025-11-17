@@ -12,30 +12,11 @@ async def test_binary_sensor_setup(hass: HomeAssistant, mock_config_entry, mock_
     """Test binary sensor setup."""
     hass.data["ekopiec"] = {"test_entry_id": mock_coordinator}
     
-    # Enable alarms in options
-    mock_config_entry.options["show_alarms"] = True
-    
     async_add_entities = AsyncMock()
     
     await async_setup_entry(hass, mock_config_entry, async_add_entities)
     
-    # Should always add output sensors, and alarms if enabled
-    assert async_add_entities.called
-
-
-@pytest.mark.asyncio
-async def test_binary_sensor_setup_no_alarms(hass: HomeAssistant, mock_config_entry, mock_coordinator):
-    """Test binary sensor setup without alarms."""
-    hass.data["ekopiec"] = {"test_entry_id": mock_coordinator}
-    
-    # Disable alarms
-    mock_config_entry.options["show_alarms"] = False
-    
-    async_add_entities = AsyncMock()
-    
-    await async_setup_entry(hass, mock_config_entry, async_add_entities)
-    
-    # Should still add output sensors
+    # Should add both output sensors and alarm sensors
     assert async_add_entities.called
 
 
