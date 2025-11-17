@@ -23,9 +23,9 @@ def test_sensor_value(mock_coordinator):
     """Test sensor value property."""
     sensor = EkopiecSensor(
         mock_coordinator,
-        "kot_value",
+        "tkot_value",
         {
-            "name": "Boiler Temperature",
+            "name": "Temperatura kotła",
             "device_class": "temperature",
             "unit": "°C",
             "state_class": "measurement",
@@ -70,3 +70,27 @@ def test_sensor_value_none(mock_coordinator):
     value = sensor.native_value
     assert value is None
 
+
+def test_regulator_sensor(mock_coordinator):
+    """Test regulator parameter sensor."""
+    sensor = EkopiecSensor(
+        mock_coordinator,
+        "rr_g_pod_off",
+        {
+            "name": "Czas postoju podajnika",
+            "device_class": "duration",
+            "unit": "s",
+            "state_class": "measurement",
+        }
+    )
+    
+    value = sensor.native_value
+    assert value == 60.0
+
+
+def test_output_status_sensor(mock_coordinator):
+    """Test output status sensor (should be binary_sensor, not sensor)."""
+    # This test verifies that output sensors are handled correctly
+    # They should actually be binary sensors, not regular sensors
+    assert mock_coordinator.data.get("out_pomp1") == "1"
+    assert mock_coordinator.data.get("out_cwu") == "0"

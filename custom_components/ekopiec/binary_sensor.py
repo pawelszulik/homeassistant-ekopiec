@@ -18,6 +18,31 @@ from .coordinator import EkopiecDataUpdateCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
+# Output status sensors (read-only)
+OUTPUT_TYPES: dict[str, dict[str, Any]] = {
+    "out_pomp1": {
+        "name": "Pompa 1",
+        "device_class": BinarySensorDeviceClass.RUNNING,
+    },
+    "out_cwu": {
+        "name": "Pompa CWU",
+        "device_class": BinarySensorDeviceClass.RUNNING,
+    },
+    "out_miesz": {
+        "name": "Pompa dodatkowa",
+        "device_class": BinarySensorDeviceClass.RUNNING,
+    },
+    "out_dm": {
+        "name": "Dmuchawa",
+        "device_class": BinarySensorDeviceClass.RUNNING,
+    },
+    "out_zaw4d": {
+        "name": "Zawór 4D",
+        "device_class": BinarySensorDeviceClass.OPENING,
+    },
+}
+
+# Alarm sensors
 ALARM_TYPES: dict[str, dict[str, Any]] = {
     "alarm_kot_przegrzanie": {
         "name": "Boiler Overheating",
@@ -126,34 +151,37 @@ async def async_setup_entry(
     """Set up binary sensor entities."""
     coordinator: EkopiecDataUpdateCoordinator = hass.data[DOMAIN][entry.entry_id]
     
-    # Check if alarms should be shown
-    if not entry.options.get("show_alarms", False):
-        _LOGGER.debug("Alarm entities disabled in options")
-        return
-    
     entities = []
-    for alarm_key, alarm_config in ALARM_TYPES.items():
-        # Create entity even if data not available (will show as unavailable)
-        entities.append(EkopiecAlarm(coordinator, alarm_key, alarm_config))
+    
+    # Always create output status sensors (they are essential for monitoring)
+    for output_key, output_config in OUTPUT_TYPES.items():
+        entities.append(EkopiecBinarySensor(coordinator, output_key, output_config))
+    
+    # Check if alarms should be shown
+    if entry.options.get("show_alarms", False):
+        for alarm_key, alarm_config in ALARM_TYPES.items():
+            entities.append(EkopiecBinarySensor(coordinator, alarm_key, alarm_config))
+    else:
+        _LOGGER.debug("Alarm entities disabled in options")
     
     async_add_entities(entities)
 
 
-class EkopiecAlarm(CoordinatorEntity, BinarySensorEntity):
-    """Representation of an ekopiec alarm binary sensor."""
+class EkopiecBinarySensor(CoordinatorEntity, BinarySensorEntity):
+    """Representation of an ekopiec binary sensor."""
     
     def __init__(
         self,
         coordinator: EkopiecDataUpdateCoordinator,
-        alarm_key: str,
+        sensor_key: str,
         config: dict[str, Any],
     ) -> None:
         """Initialize the binary sensor."""
         super().__init__(coordinator)
-        self._alarm_key = alarm_key
+        self._sensor_key = sensor_key
         self._config = config
         device_sn = coordinator.data.get("device_sn", "unknown")
-        self._attr_unique_id = f"{device_sn}_{alarm_key}"
+        self._attr_unique_id = f"{device_sn}_{sensor_key}"
         self._attr_has_entity_name = True
         self._attr_name = config["name"]
         self._attr_device_class = config.get("device_class")
@@ -165,8 +193,8 @@ class EkopiecAlarm(CoordinatorEntity, BinarySensorEntity):
     
     @property
     def is_on(self) -> bool:
-        """Return if the alarm is active."""
-        value = self.coordinator.data.get(self._alarm_key)
+        """Return if the binary sensor is on."""
+        value = self.coordinator.data.get(self._sensor_key)
         if value is None:
             return False
         
@@ -178,4 +206,3 @@ class EkopiecAlarm(CoordinatorEntity, BinarySensorEntity):
         if isinstance(value, str):
             return value.lower() in ("1", "on", "true", "yes", "active", "alarm")
         return False
-

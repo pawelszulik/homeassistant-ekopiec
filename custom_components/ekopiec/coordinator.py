@@ -1,5 +1,5 @@
 """Data update coordinator for ekopiec."""
-from datetime import timedelta
+from datetime import timedelta, datetime
 import logging
 from typing import Any, Dict
 
@@ -39,6 +39,9 @@ class EkopiecDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
         try:
             data = await self.api.get_all_data()
             
+            # Convert Unix timestamps to datetime strings
+            self._convert_timestamps(data)
+            
             # Store device info on first update
             if self.device_info is None:
                 self.device_info = {
@@ -56,6 +59,47 @@ class EkopiecDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             raise ConfigEntryAuthFailed("Authentication failed") from err
         except Exception as err:
             raise UpdateFailed(f"Error communicating with controller: {err}") from err
+    
+    def _convert_timestamps(self, data: Dict[str, Any]) -> None:
+        """Convert Unix timestamps to datetime strings.
+        
+        Converts timestamps for:
+        - add_fuel_time: Last fuel refill timestamp
+        - next_fuel_time: Next fuel refill timestamp
+        
+        Args:
+            data: Device data dictionary to update with converted values
+        """
+        timestamp_fields = ["add_fuel_time", "next_fuel_time"]
+        
+        for field in timestamp_fields:
+            timestamp_value = data.get(field)
+            
+            if timestamp_value is None:
+                continue
+            
+            try:
+                # Convert Unix timestamp (seconds) to datetime string
+                if isinstance(timestamp_value, str) and timestamp_value.isdigit():
+                    timestamp = int(timestamp_value)
+                elif isinstance(timestamp_value, (int, float)):
+                    timestamp = int(timestamp_value)
+                else:
+                    _LOGGER.debug("Skipping non-numeric timestamp for %s: %s", field, timestamp_value)
+                    continue
+                
+                # Convert to datetime and format as YYYY-MM-DD HH:MM:SS
+                dt = datetime.fromtimestamp(timestamp)
+                data[field] = dt.strftime("%Y-%m-%d %H:%M:%S")
+                
+                _LOGGER.debug(
+                    "Converted %s: %s -> %s",
+                    field, timestamp, data[field]
+                )
+                
+            except (ValueError, OSError, OverflowError) as err:
+                _LOGGER.warning("Cannot convert timestamp for %s (%s): %s", field, timestamp_value, err)
+                data[field] = None
     
     async def set_parameter_with_limit(
         self, 
@@ -88,4 +132,3 @@ class EkopiecDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             await self.async_request_refresh()
         
         return success
-

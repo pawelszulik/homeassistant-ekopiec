@@ -31,20 +31,51 @@ def sample_device_data():
         "device_type": "eCoal",
         "device_soft_version": "1.0.0",
         "device_hard_version": "2.0",
-        "kot_value": "65.5",
-        "kot_tzad": "70.0",
+        # Temperature sensors
+        "tkot_value": "65.5",
         "tpow_value": "42.3",
+        "tpod_value": "35.0",
         "tcwu_value": "55.2",
-        "tcwu_tzad": "60.0",
-        "ob1_typ": "1",
-        "ob1_temp": "45.0",
-        "ob1_tzad": "50.0",
-        "ob1_tryb": "1",
-        "pompa_kotla": "1",
-        "pompa_cwu": "0",
-        "dmuchawa": "1",
-        "paliwo_poziom": "75",
-        "paliwo_czas_pracy": "120",
+        "t1_value": "50.0",
+        "tsp_value": "150.0",
+        # Blower sensors
+        "dm_rms": "75",
+        "act_dm_speed": "80",
+        # Regulator parameters
+        "rr_g_pod_off": "60",
+        "rr_g_pod_on": "10",
+        "rr_rsp_dm_speed": "30",
+        "rr_rsp_tmax": "200",
+        "rr_rsp_en": "1",
+        "rr_g_dm_speed": "50",
+        # Setpoints
+        "kot_tzad": "70.0",
+        "cwu_tzad": "60.0",
+        "pomp_ton": "45.0",
+        # Feeder parameters
+        "p_pod_on": "15",
+        "p_pod_off": "120",
+        "p_pod_wait": "5",
+        "p_pod_cnt": "3",
+        # Operating modes
+        "zima_lato": "0",
+        "tryb_auto_state": "1",
+        # Fuel sensors
+        "fuel_level": "75",
+        "pod_run_time_str": "120:45:30",
+        # Valve position
+        "ob1_zaw4d_pos": "50",
+        # Date/Time
+        "datetime": "2025-11-17T22:45:33Z",
+        "add_fuel_time": "1731657600",
+        "next_fuel_time": "1732262400",
+        # Output status
+        "out_pomp1": "1",
+        "out_cwu": "0",
+        "out_miesz": "0",
+        "out_dm": "1",
+        "out_zaw4d": "1",
+        # Alarms
         "alarm_kot_przegrzanie": "0",
         "alarm_paliwo_brak": "0",
     }
@@ -85,4 +116,3 @@ def mock_config_entry():
         "show_numbers": True,
     }
     return entry
-

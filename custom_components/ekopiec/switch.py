@@ -16,53 +16,16 @@ from .coordinator import EkopiecDataUpdateCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 SWITCH_TYPES: dict[str, dict[str, Any]] = {
-    "pompa_kotla": {
-        "name": "Boiler Pump",
-        "icon": "mdi:pump",
+    # Operating mode switches
+    "zima_lato": {
+        "name": "Tryb Zima/Lato",
+        "icon": "mdi:snowflake-thermometer",
+        "description": "Przełącz między trybem zimowym (0) a letnim (1)",
     },
-    "pompa_cwu": {
-        "name": "DHW Pump",
-        "icon": "mdi:pump",
-    },
-    "pompa_ob1": {
-        "name": "Circuit 1 Pump",
-        "icon": "mdi:pump",
-    },
-    "pompa_ob2": {
-        "name": "Circuit 2 Pump",
-        "icon": "mdi:pump",
-    },
-    "pompa_ob3": {
-        "name": "Circuit 3 Pump",
-        "icon": "mdi:pump",
-    },
-    "pompa_ob4": {
-        "name": "Circuit 4 Pump",
-        "icon": "mdi:pump",
-    },
-    "dmuchawa": {
-        "name": "Blower",
-        "icon": "mdi:fan",
-    },
-    "zawor_mieszajacy": {
-        "name": "Mixing Valve",
-        "icon": "mdi:valve",
-    },
-    "zawor_trzydrogi": {
-        "name": "Three-Way Valve",
-        "icon": "mdi:valve",
-    },
-    "podajnik": {
-        "name": "Feeder",
-        "icon": "mdi:conveyor-belt",
-    },
-    "zapalarka": {
-        "name": "Igniter",
-        "icon": "mdi:fire",
-    },
-    "wentylator": {
-        "name": "Fan",
-        "icon": "mdi:fan",
+    "tryb_auto_state": {
+        "name": "Tryb Pracy",
+        "icon": "mdi:auto-mode",
+        "description": "Przełącz między trybem ręcznym (0) a automatycznym (1)",
     },
 }
 
@@ -121,6 +84,8 @@ class EkopiecSwitch(CoordinatorEntity, SwitchEntity):
             return False
         
         # Convert to boolean - handle various formats
+        # For zima_lato: 0=zima (off), 1=lato (on)
+        # For tryb_auto_state: 0=ręczny (off), 1=auto (on)
         if isinstance(value, bool):
             return value
         if isinstance(value, (int, float)):
@@ -146,4 +111,3 @@ class EkopiecSwitch(CoordinatorEntity, SwitchEntity):
             await self.coordinator.async_request_refresh()
         else:
             _LOGGER.error("Failed to turn off %s", self._switch_key)
-

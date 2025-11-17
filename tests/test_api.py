@@ -22,13 +22,13 @@ def api_client():
 
 def test_decode_syncvalues(api_client):
     """Test decoding syncvalues format."""
-    raw_data = "1731657600;device_sn:AB123CD;device_id:5;kot_value:65.5;tpow_value:42.3"
+    raw_data = "1731657600;device_sn:AB123CD;device_id:5;tkot_value:65.5;tpow_value:42.3"
     result = api_client._decode_syncvalues(raw_data)
     
     assert result["readed_date"] == "1731657600"
     assert result["device_sn"] == "AB123CD"
     assert result["device_id"] == "5"
-    assert result["kot_value"] == "65.5"
+    assert result["tkot_value"] == "65.5"
     assert result["tpow_value"] == "42.3"
 
 
@@ -52,7 +52,7 @@ async def test_get_all_data_success(api_client):
     """Test successful get_all_data."""
     mock_response = AsyncMock()
     mock_response.status = 200
-    mock_response.text = AsyncMock(return_value="1731657600;device_sn:AB123CD;kot_value:65.5")
+    mock_response.text = AsyncMock(return_value="1731657600;device_sn:AB123CD;tkot_value:65.5")
     mock_response.json = AsyncMock()
     
     api_client._session.get = AsyncMock(return_value=mock_response)
@@ -63,7 +63,7 @@ async def test_get_all_data_success(api_client):
         result = await api_client.get_all_data()
     
     assert result["device_sn"] == "AB123CD"
-    assert result["kot_value"] == "65.5"
+    assert result["tkot_value"] == "65.5"
 
 
 @pytest.mark.asyncio
@@ -135,4 +135,3 @@ async def test_set_parameter_retry(api_client):
     
     assert result is True
     assert api_client._session.get.call_count == 2
-

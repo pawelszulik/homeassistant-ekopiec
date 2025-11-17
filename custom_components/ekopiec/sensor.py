@@ -13,7 +13,6 @@ from homeassistant.const import (
     PERCENTAGE,
     UnitOfTemperature,
     UnitOfTime,
-    UnitOfEnergy,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -28,20 +27,20 @@ _LOGGER = logging.getLogger(__name__)
 # Temperature sensors
 SENSOR_TYPES: dict[str, dict[str, Any]] = {
     # Boiler temperatures
-    "kot_value": {
-        "name": "Temperatura Kot�a",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "kot_tzad": {
-        "name": "Temperatura Zadana Kot�a",
+    "tkot_value": {
+        "name": "Temperatura kotła",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
     "tpow_value": {
-        "name": "Temperatura powrotu kot�a",
+        "name": "Temperatura powrotu",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "tpod_value": {
+        "name": "Temperatura podajnika",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
@@ -52,110 +51,23 @@ SENSOR_TYPES: dict[str, dict[str, Any]] = {
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
-    "tcwu_tzad": {
-        "name": "Temperatura zadana",
+    "t1_value": {
+        "name": "Temperatura za zaworem",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
-    # Exhaust/Flue temperature
     "tsp_value": {
         "name": "Temperatura spalin",
         "device_class": SensorDeviceClass.TEMPERATURE,
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
-    # Circuit temperatures
-    "ob1_temp": {
-        "name": "Circuit 1 Temperature",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    # Fuel sensors
-    "paliwo_poziom": {
-        "name": "Poziom paliwa",
+    # Blower/Fan sensors
+    "dm_rms": {
+        "name": "Wartość skuteczna dmuchawy/nawiewnika",
         "device_class": None,
         "unit": PERCENTAGE,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "paliwo_czas_pracy": {
-        "name": "Czas pracy na paliwie",
-        "device_class": SensorDeviceClass.DURATION,
-        "unit": UnitOfTime.HOURS,
-        "state_class": SensorStateClass.TOTAL_INCREASING,
-    },
-    "paliwo_data_zasypania": {
-        "name": "Data zasypania kot�a",
-        "device_class": SensorDeviceClass.TIMESTAMP,
-        "unit": None,
-        "state_class": None,
-    },
-    "paliwo_ilosc": {
-        "name": "Ilo�� w�gla",
-        "device_class": None,
-        "unit": "kg",
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "paliwo_zuzycie": {
-        "name": "Zu�ycie w kg\h",
-        "device_class": None,
-        "unit": "kg/h",
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "paliwo_pozostalo": {
-        "name": "Zosta�o w�gla",
-        "device_class": None,
-        "unit": "kg",
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "paliwo_dni_do_zasypania": {
-        "name": "Ilo�� do do zasypania",
-        "device_class": None,
-        "unit": "days",
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    # DHW/CWU sensors
-    "cwu_cisnienie": {
-        "name": "DHW Pressure",
-        "device_class": None,
-        "unit": "bar",
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "cwu_poziom": {
-        "name": "DHW Level",
-        "device_class": None,
-        "unit": PERCENTAGE,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "cwu_czas_pracy": {
-        "name": "DHW Runtime",
-        "device_class": SensorDeviceClass.DURATION,
-        "unit": UnitOfTime.HOURS,
-        "state_class": SensorStateClass.TOTAL_INCREASING,
-    },
-    "cwu_tryb": {
-        "name": "DHW Mode",
-        "device_class": None,
-        "unit": None,
-        "state_class": None,
-    },
-    "cwu_status": {
-        "name": "DHW Status",
-        "device_class": None,
-        "unit": None,
-        "state_class": None,
-    },
-    "cwu_temperatura_min": {
-        "name": "DHW Min Temperature",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "cwu_temperatura_max": {
-        "name": "DHW Max Temperature",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
     "act_dm_speed": {
@@ -164,14 +76,89 @@ SENSOR_TYPES: dict[str, dict[str, Any]] = {
         "unit": PERCENTAGE,
         "state_class": SensorStateClass.MEASUREMENT,
     },
-    # Operating modes
-    "zima_lato": {
-        "name": "Tryb Zima/Lato",
+    # Regulator parameters (read-only sensors)
+    "rr_g_pod_off": {
+        "name": "Czas postoju podajnika",
+        "device_class": SensorDeviceClass.DURATION,
+        "unit": UnitOfTime.SECONDS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "rr_g_pod_on": {
+        "name": "Czas pracy podajnika",
+        "device_class": SensorDeviceClass.DURATION,
+        "unit": UnitOfTime.SECONDS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "rr_rsp_dm_speed": {
+        "name": "Minimalna moc dmuchawy",
+        "device_class": None,
+        "unit": PERCENTAGE,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "rr_rsp_tmax": {
+        "name": "Maksymalna temperatura spalin",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "rr_rsp_en": {
+        "name": "Regulator temperatury spalin",
         "device_class": None,
         "unit": None,
         "state_class": None,
     },
-    "zima_lato_state": {
+    "rr_g_dm_speed": {
+        "name": "Moc dmuchawy",
+        "device_class": None,
+        "unit": PERCENTAGE,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    # Setpoint sensors (read-only)
+    "kot_tzad": {
+        "name": "Temperatura zadana kotła",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "cwu_tzad": {
+        "name": "Temperatura zadana CWU",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "pomp_ton": {
+        "name": "Temperatura załączenia pomp",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    # Feeder parameters (read-only)
+    "p_pod_on": {
+        "name": "Czas pracy podajnika - Podtrzymanie",
+        "device_class": SensorDeviceClass.DURATION,
+        "unit": UnitOfTime.SECONDS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "p_pod_off": {
+        "name": "Czas postoju podajnika - Podtrzymanie",
+        "device_class": SensorDeviceClass.DURATION,
+        "unit": UnitOfTime.SECONDS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "p_pod_wait": {
+        "name": "Czas krótkiej przerwy - Podtrzymanie",
+        "device_class": SensorDeviceClass.DURATION,
+        "unit": UnitOfTime.SECONDS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    "p_pod_cnt": {
+        "name": "Ilość powtórzeń - Podtrzymanie",
+        "device_class": None,
+        "unit": "repetitions",
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
+    # Operating modes (read-only sensors)
+    "zima_lato": {
         "name": "Tryb Zima/Lato",
         "device_class": None,
         "unit": None,
@@ -183,74 +170,38 @@ SENSOR_TYPES: dict[str, dict[str, Any]] = {
         "unit": None,
         "state_class": None,
     },
-    # Valve 4D position sensors (for each circuit)
-    "ob1_zaw4d_pos": {
-        "name": "Zawór 4D Obwód 1 - Pozycja otwarcia",
-        "device_class": None,
-        "unit": PERCENTAGE,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    # Additional temperature sensors
-    "tpod_value": {
-        "name": "Temperatura podajnika",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "twew_value": {
-        "name": "Temperatura wewnętrzna",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "tzew_value": {
-        "name": "Temperatura zewnętrzna",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "t1_value": {
-        "name": "Temperatura za zaworem",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "t2_value": {
-        "name": "Temperatura wewnętrzna CO2",
-        "device_class": SensorDeviceClass.TEMPERATURE,
-        "unit": UnitOfTemperature.CELSIUS,
-        "state_class": SensorStateClass.MEASUREMENT,
-    },
-    # Additional fuel sensors
+    # Fuel sensors
     "fuel_level": {
-        "name": "Poziom paliwa",
+        "name": "Poziom paliwa w zasobniku",
         "device_class": None,
         "unit": PERCENTAGE,
         "state_class": SensorStateClass.MEASUREMENT,
-    },
-    "fuel_level_enum": {
-        "name": "Poziom paliwa (enum)",
-        "device_class": None,
-        "unit": None,
-        "state_class": None,
-    },
-    "pod_run_time": {
-        "name": "Czas pracy podajnika",
-        "device_class": SensorDeviceClass.DURATION,
-        "unit": UnitOfTime.HOURS,
-        "state_class": SensorStateClass.TOTAL_INCREASING,
     },
     "pod_run_time_str": {
-        "name": "Czas pracy podajnika (tekst)",
+        "name": "Czas pracy podajnika",
         "device_class": None,
         "unit": None,
         "state_class": None,
     },
-    "time_to_empty": {
-        "name": "Czas do opróżnienia zasobnika",
-        "device_class": SensorDeviceClass.DURATION,
-        "unit": UnitOfTime.HOURS,
+    # Valve position
+    "ob1_zaw4d_pos": {
+        "name": "Pozycja zaworu 4D",
+        "device_class": None,
+        "unit": PERCENTAGE,
         "state_class": SensorStateClass.MEASUREMENT,
+    },
+    # Date/Time sensors
+    "datetime": {
+        "name": "Aktualna data",
+        "device_class": SensorDeviceClass.TIMESTAMP,
+        "unit": None,
+        "state_class": None,
+    },
+    "add_fuel_time": {
+        "name": "Ostatnia data zasypu",
+        "device_class": SensorDeviceClass.TIMESTAMP,
+        "unit": None,
+        "state_class": None,
     },
     "next_fuel_time": {
         "name": "Data kolejnego zasypu",
@@ -283,19 +234,15 @@ async def async_setup_entry(
     
     for sensor_key, sensor_config in SENSOR_TYPES.items():
         # Skip based on options
-        if "temp" in sensor_key.lower() or "kot" in sensor_key.lower() or "tpow" in sensor_key.lower() or "tcwu" in sensor_key.lower():
+        if "temp" in sensor_key.lower() or "tkot" in sensor_key.lower() or "tpow" in sensor_key.lower() or "tcwu" in sensor_key.lower():
             if not show_temps:
                 _LOGGER.debug("Skipping temperature sensor: %s", sensor_key)
                 continue
         
-        # Check for fuel sensors - check both key and name (name might be in Polish now)
+        # Check for fuel sensors
         is_fuel_sensor = (
-            "paliwo" in sensor_key.lower() or 
             "fuel" in sensor_key.lower() or
-            "fuel" in sensor_config.get("name", "").lower() or
-            "paliwo" in sensor_config.get("name", "").lower() or
-            "węgla" in sensor_config.get("name", "").lower() or
-            "zasypania" in sensor_config.get("name", "").lower()
+            "pod_run" in sensor_key.lower()
         )
         
         if is_fuel_sensor:
@@ -304,7 +251,7 @@ async def async_setup_entry(
                 continue
             _LOGGER.debug("Creating fuel sensor: %s", sensor_key)
         
-        if "cwu" in sensor_key.lower() or "dhw" in sensor_key.lower():
+        if "cwu" in sensor_key.lower():
             if not show_dhw:
                 _LOGGER.debug("Skipping DHW sensor: %s", sensor_key)
                 continue
@@ -313,11 +260,6 @@ async def async_setup_entry(
         entities.append(EkopiecSensor(coordinator, sensor_key, sensor_config))
     
     _LOGGER.info("Created %d sensor entities", len(entities))
-    fuel_sensors = [e._sensor_key for e in entities if "paliwo" in e._sensor_key.lower()]
-    if fuel_sensors:
-        _LOGGER.info("Fuel sensors created: %s", fuel_sensors)
-    else:
-        _LOGGER.warning("No fuel sensors created! Check show_fuel option and sensor definitions.")
     
     async_add_entities(entities)
 
@@ -364,4 +306,3 @@ class EkopiecSensor(CoordinatorEntity, SensorEntity):
             return float(value)
         except (ValueError, TypeError):
             return str(value)
-
