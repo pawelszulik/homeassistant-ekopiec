@@ -27,12 +27,13 @@ Integracja Home Assistant dla sterownika pieca eCoal (ekopiec) produkowanego prz
 
 ### Metoda 2: Ręczna instalacja
 
-Skopiuj zawartość tego repozytorium do katalogu `custom_components` w Home Assistant:
+Skopiuj zawartość tego repozytorium do katalogu `/config/custom_components` w Home Assistant:
 
 ```bash
-cd /config
+cd /config/custom_components
+##rm -rf ekopiec
 git clone https://github.com/pawelszulik/homeassistant-ekopiec
-cp -r homeassistant-ekopiec/custom_components/ekopiec custom_components/
+cp -r homeassistant-ekopiec/custom_components/ekopiec .
 rm -rf homeassistant-ekopiec
 ```
 
@@ -169,24 +170,6 @@ Wszystkie parametry wyświetlane jako pola tekstowe do wpisania wartości:
 - Alarmy obwodów grzewczych (1-6)
 - Alarm ogólny i serwisowy
 
-## Migracja z poprzedniej wersji
-
-⚠️ **UWAGA**: Ta wersja zawiera zmiany łamiące kompatybilność!
-
-Po aktualizacji:
-1. Usuń starą integrację ekopiec z Home Assistant
-2. Zrestartuj Home Assistant
-3. Dodaj integrację ponownie
-4. Wszystkie encje zostaną utworzone z nowymi nazwami
-5. Wyłącz niepotrzebne encje ręcznie w ustawieniach
-
-**Główne zmiany:**
-- `kot_value` → `tkot_value`
-- Usunięte sensory paliwa `paliwo_*`
-- Usunięte sensory CWU (poza `tcwu_value`)
-- Usunięte opcje konfiguracyjne
-- Wszystkie parametry jako pola tekstowe zamiast suwaków
-- Nowe sensory regulatora i statusu wyjść
 
 ## Wymagania
 
