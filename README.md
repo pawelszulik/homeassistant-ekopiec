@@ -4,13 +4,15 @@ Integracja Home Assistant dla sterownika pieca eCoal (ekopiec) produkowanego prz
 
 ## Funkcje
 
-- **Czujniki temperatury**: Temperatura kotła, powrotu, CWU oraz obwodów grzewczych
-- **Sterowanie klimatyzacją**: 6 obwodów grzewczych z możliwością ustawienia temperatury i trybu pracy
-- **Przełączniki**: Sterowanie pompami, dmuchawą, zaworami i podajnikiem
-- **Parametry numeryczne**: Ustawianie setpointów, czasów pracy, mocy dmuchawy z walidacją zakresów
-- **Czujniki paliwa**: Poziom paliwa, czas pracy, data zasypania, zużycie
-- **Alarmy**: 24 binarne czujniki alarmów systemowych
-- **Filtrowanie encji**: Możliwość włączania/wyłączania kategorii encji w opcjach
+- **Czujniki temperatury**: Temperatura kotła, powrotu, CWU, podajnika, spalin
+- **Sterowanie klimatyzacją**: Obwody grzewcze z możliwością ustawienia temperatury i trybu pracy
+- **Tryby pracy**: Przełączanie między trybem zima/lato oraz auto/ręczny
+- **Parametry regulatora**: Czasy pracy podajnika, moc dmuchawy, temperatura spalin
+- **Parametry numeryczne**: Ustawianie setpointów, czasów pracy z walidacją zakresów (jako pola tekstowe)
+- **Czujniki paliwa**: Poziom paliwa, czas pracy podajnika, daty zasypania
+- **Status wyjść**: Monitoring stanu pomp, dmuchawy, zaworu 4D
+- **Alarmy**: Binarne czujniki alarmów systemowych
+- **Daty**: Aktualna data, ostatnia data zasypu, data kolejnego zasypu
 
 ## Instalacja
 
@@ -19,15 +21,27 @@ Integracja Home Assistant dla sterownika pieca eCoal (ekopiec) produkowanego prz
 1. Zainstaluj [HACS](https://hacs.xyz/)
 2. Przejdź do HACS → Integracje → Menu (⋮) → Custom repositories
 3. Dodaj repozytorium: `https://github.com/pawelszulik/homeassistant-ekopiec`
-4. Zainstaluj integrację "eCoal (ekopiec)"
-5. Zrestartuj Home Assistant
+4. Kategoria: `Integration`
+5. Zainstaluj integrację "eCoal (ekopiec)"
+6. Zrestartuj Home Assistant
 
 ### Metoda 2: Ręczna instalacja
 
-1. Skopiuj folder `custom_components/ekopiec` do katalogu `custom_components` w Home Assistant
-2. Zrestartuj Home Assistant
-3. Przejdź do Ustawienia → Urządzenia i usługi → Dodaj integrację
-4. Wyszukaj "ekopiec" i postępuj zgodnie z instrukcjami
+Skopiuj zawartość tego repozytorium do katalogu `custom_components` w Home Assistant:
+
+```bash
+cd /config
+git clone https://github.com/pawelszulik/homeassistant-ekopiec
+cp -r homeassistant-ekopiec/custom_components/ekopiec custom_components/
+rm -rf homeassistant-ekopiec
+```
+
+Lub pobierz i wypakuj ręcznie:
+
+1. Pobierz najnowszą wersję z [Releases](https://github.com/pawelszulik/homeassistant-ekopiec/releases)
+2. Wypakuj archiwum
+3. Skopiuj folder `custom_components/ekopiec` do katalogu `custom_components` w Home Assistant
+4. Zrestartuj Home Assistant
 
 ## Konfiguracja
 
@@ -40,63 +54,139 @@ Integracja Home Assistant dla sterownika pieca eCoal (ekopiec) produkowanego prz
    - **Hasło**: Hasło do sterownika
 4. Kliknij **Prześlij**
 
-Integracja automatycznie wykryje urządzenie i utworzy wszystkie dostępne encje.
+Integracja automatycznie utworzy wszystkie dostępne encje.
 
-## Opcje konfiguracji
+## Zarządzanie encjami
 
-Po dodaniu integracji możesz skonfigurować, które kategorie encji mają być wyświetlane:
+Wszystkie encje są tworzone automatycznie. Jeśli nie potrzebujesz niektórych encji:
 
 1. Przejdź do **Ustawienia** → **Urządzenia i usługi**
-2. Znajdź integrację **ekopiec** i kliknij **Konfiguruj**
-3. Wybierz kategorie encji:
-   - **Pokaż czujniki temperatury** (11 sensorów)
-   - **Pokaż obwody grzewcze** (6 obwodów)
-   - **Pokaż parametry CWU** (7 sensorów)
-   - **Pokaż sterowanie wyjściami** (8 przełączników)
-   - **Pokaż zarządzanie paliwem** (7 sensorów)
-   - **Pokaż stany alarmów** (24 sensory) - domyślnie wyłączone
-   - **Pokaż parametry regulacyjne** (50+ liczb)
+2. Znajdź urządzenie **ekopiec**
+3. Kliknij na encję którą chcesz wyłączyć
+4. Kliknij ikonę ustawień (⚙️) → **Wyłącz encję**
 
 ## Encje
 
 ### Czujniki (Sensors)
 
-- Temperatury: kotła, powrotu, CWU, obwodów grzewczych
-- Paliwo: poziom, czas pracy, data zasypania, zużycie, pozostało, dni do zasypania
-- CWU: ciśnienie, poziom, czas pracy, tryb, status, temperatura min/max
-- Informacje: wersja oprogramowania, wersja sprzętu, typ urządzenia
+**Temperatury:**
+- `tkot_value` - Temperatura kotła
+- `tpow_value` - Temperatura powrotu
+- `tpod_value` - Temperatura podajnika
+- `tcwu_value` - Temperatura CWU
+- `tsp_value` - Temperatura spalin
+
+**Dmuchawa:**
+- `dm_rms` - Wartość skuteczna dmuchawy/nawiewnika
+- `act_dm_speed` - Aktualna moc dmuchawy
+
+**Parametry regulatora (tylko odczyt):**
+- `rr_g_pod_off` - Czas postoju podajnika
+- `rr_g_pod_on` - Czas pracy podajnika
+- `rr_rsp_dm_speed` - Minimalna moc dmuchawy
+- `rr_rsp_tmax` - Maksymalna temperatura spalin
+- `rr_rsp_en` - Regulator temperatury spalin
+- `rr_g_dm_speed` - Moc dmuchawy
+
+**Temperatury zadane (tylko odczyt):**
+- `kot_tzad` - Temperatura zadana kotła
+- `cwu_tzad` - Temperatura zadana CWU
+- `pomp_ton` - Temperatura załączenia pomp
+
+**Parametry podajnika (tylko odczyt):**
+- `p_pod_on` - Czas pracy podajnika - Podtrzymanie
+- `p_pod_off` - Czas postoju podajnika - Podtrzymanie
+- `p_pod_wait` - Czas krótkiej przerwy - Podtrzymanie
+- `p_pod_cnt` - Ilość powtórzeń - Podtrzymanie
+
+**Tryby pracy (tylko odczyt):**
+- `zima_lato` - Tryb Zima/Lato (0=zima, 1=lato)
+- `tryb_auto_state` - Tryb Pracy (0=ręczny, 1=auto)
+
+**Paliwo:**
+- `fuel_level` - Poziom paliwa w zasobniku
+- `pod_run_time_str` - Czas pracy podajnika
+
+**Zawór:**
+- `ob1_zaw4d_pos` - Pozycja zaworu 4D
+
+**Daty:**
+- `datetime` - Aktualna data ze sterownika
+- `add_fuel_time` - Ostatnia data zasypu
+- `next_fuel_time` - Data kolejnego zasypu
 
 ### Klimatyzacja (Climate)
 
-- 6 obwodów grzewczych z możliwością:
-  - Ustawienia temperatury docelowej
-  - Wyboru trybu pracy (OFF, HEAT, AUTO)
-  - Włączania/wyłączania
+Obwody grzewcze (tworzone tylko jeśli aktywne w sterowniku):
+- Ustawianie temperatury docelowej
+- Wybór trybu pracy (OFF, HEAT, AUTO)
+- Włączanie/wyłączanie
 
 ### Przełączniki (Switches)
 
-- Pompy: kotła, CWU, obwodów grzewczych (1-4)
-- Dmuchawa
-- Zawory: mieszający, trójdrogowy
-- Podajnik
-- Zapalarka
-- Wentylator
+**Tryby pracy:**
+- `zima_lato` - Tryb Zima/Lato (OFF=zima, ON=lato)
+- `tryb_auto_state` - Tryb Pracy (OFF=ręczny, ON=auto)
 
 ### Liczby (Numbers)
 
-- Temperatury docelowe: kotła, CWU, obwodów (1-6)
-- Moc dmuchawy: min, max, aktualna
-- Czasy: podajnik (ON/OFF), rozpalanie, gaszenie
-- Histereza
+Wszystkie parametry wyświetlane jako pola tekstowe do wpisania wartości:
 
-Wszystkie parametry mają walidację zakresów wartości.
+**Temperatury docelowe:**
+- `kot_tzad` - Temperatura zadana kotła (10-85°C)
+- `cwu_tzad` - Temperatura zadana CWU (10-85°C)
+- `pomp_ton` - Temperatura załączenia pomp (10-85°C)
+
+**Parametry podajnika - Podtrzymanie:**
+- `p_pod_on` - Czas pracy podajnika (1-300s)
+- `p_pod_off` - Czas postoju podajnika (1-3600s)
+- `p_pod_wait` - Czas krótkiej przerwy (1-300s)
+- `p_pod_cnt` - Ilość powtórzeń (1-20)
+
+**Parametry regulatora:**
+- `rr_g_pod_off` - Czas postoju podajnika (0-300s)
+- `rr_g_pod_on` - Czas pracy podajnika (0-300s)
+- `rr_rsp_dm_speed` - Minimalna moc dmuchawy (0-300)
+- `rr_rsp_tmax` - Maksymalna temperatura spalin (0-300°C)
+- `rr_rsp_en` - Regulator temperatury spalin (0-1)
+- `rr_g_dm_speed` - Moc dmuchawy (0-300)
 
 ### Binarne czujniki (Binary Sensors)
 
-- Alarmy systemowe: przegrzanie, niska temperatura, brak paliwa, awarie pomp, dmuchawy, podajnika, zapalarki
-- Błędy czujników: temperatury, ciśnienia
+**Status wyjść (tylko odczyt):**
+- `out_pomp1` - Pompa 1
+- `out_cwu` - Pompa CWU
+- `out_miesz` - Pompa dodatkowa
+- `out_dm` - Dmuchawa
+
+**Alarmy systemowe:**
+- Przegrzanie kotła/CWU
+- Niska temperatura kotła/CWU
+- Brak/niski poziom paliwa
+- Awarie: pomp, dmuchawy, podajnika, zapalarki
+- Błędy czujników temperatury i ciśnienia
 - Błędy komunikacji i zasilania
 - Alarmy obwodów grzewczych (1-6)
+- Alarm ogólny i serwisowy
+
+## Migracja z poprzedniej wersji
+
+⚠️ **UWAGA**: Ta wersja zawiera zmiany łamiące kompatybilność!
+
+Po aktualizacji:
+1. Usuń starą integrację ekopiec z Home Assistant
+2. Zrestartuj Home Assistant
+3. Dodaj integrację ponownie
+4. Wszystkie encje zostaną utworzone z nowymi nazwami
+5. Wyłącz niepotrzebne encje ręcznie w ustawieniach
+
+**Główne zmiany:**
+- `kot_value` → `tkot_value`
+- Usunięte sensory paliwa `paliwo_*`
+- Usunięte sensory CWU (poza `tcwu_value`)
+- Usunięte opcje konfiguracyjne
+- Wszystkie parametry jako pola tekstowe zamiast suwaków
+- Nowe sensory regulatora i statusu wyjść
 
 ## Wymagania
 
@@ -104,19 +194,39 @@ Wszystkie parametry mają walidację zakresów wartości.
 - Sterownik eCoal z dostępem przez HTTP
 - Python 3.10+
 
-## Wsparcie
+## Rozwiązywanie problemów
+
+Szczegółowe informacje znajdziesz w [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 W razie problemów:
-1. Sprawdź logi Home Assistant pod kątem błędów
+1. Sprawdź logi Home Assistant: **Ustawienia** → **System** → **Logi**
 2. Upewnij się, że sterownik jest dostępny w sieci
 3. Sprawdź poprawność danych logowania
-4. Zgłoś problem w [repozytorium GitHub](https://github.com/pawelszulik/homeassistant-ekopiec)
+4. Sprawdź czy port 80 nie jest blokowany przez firewall
+5. Zgłoś problem w [Issues](https://github.com/pawelszulik/homeassistant-ekopiec/issues)
+
+## Dokumentacja
+
+- [Instalacja](INSTALLATION.md) - Szczegółowa instrukcja instalacji
+- [Encje](ENTITIES.md) - Pełna lista dostępnych encji
+- [Rozwiązywanie problemów](TROUBLESHOOTING.md) - Pomoc przy problemach
+
+## Wsparcie projektu
+
+Jeśli integracja jest dla Ciebie przydatna:
+- ⭐ Zostaw gwiazdkę na GitHub
+- 🐛 Zgłaszaj błędy w Issues
+- 💡 Proponuj nowe funkcje
+- 🔧 Twórz Pull Requesty
 
 ## Licencja
 
-MIT License
+MIT License - Zobacz [LICENSE](LICENSE)
 
 ## Autor
 
-Integracja stworzona dla sterowników eCoal produkowanych przez eSterownik.pl
+Integracja stworzona dla sterowników eCoal produkowanych przez [eSterownik.pl](https://esterownik.pl)
 
+---
+
+**Uwaga**: To nieoficjalna integracja stworzona przez społeczność. Nie jest powiązana z producentem sterowników eCoal.
