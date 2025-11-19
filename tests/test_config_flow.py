@@ -5,7 +5,7 @@ from homeassistant import config_entries
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
 
-from custom_components.ekopiec.config_flow import EkopiecConfigFlow, EkopiecOptionsFlowHandler
+from custom_components.ekopiec.config_flow import EkopiecConfigFlow
 from custom_components.ekopiec.api import AuthenticationError
 
 
@@ -88,25 +88,4 @@ async def test_user_step_cannot_connect(hass: HomeAssistant):
     assert result["errors"]["base"] == "cannot_connect"
 
 
-@pytest.mark.asyncio
-async def test_options_flow(hass: HomeAssistant, mock_config_entry):
-    """Test options flow."""
-    handler = EkopiecOptionsFlowHandler(mock_config_entry)
-    handler.hass = hass
-    
-    # Test initial form
-    result = await handler.async_step_init()
-    assert result["type"] == FlowResultType.FORM
-    
-    # Test submit
-    result = await handler.async_step_init({
-        "show_temperatures": True,
-        "show_climate": True,
-        "show_dhw": True,
-        "show_switches": True,
-        "show_fuel": True,
-        "show_alarms": False,
-        "show_numbers": True,
-    })
-    assert result["type"] == FlowResultType.CREATE_ENTRY
 

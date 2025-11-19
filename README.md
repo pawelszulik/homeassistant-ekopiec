@@ -5,13 +5,12 @@ Integracja Home Assistant dla sterownika pieca eCoal (ekopiec) produkowanego prz
 ## Funkcje
 
 - **Czujniki temperatury**: Temperatura kotła, powrotu, CWU, podajnika, spalin
-- **Sterowanie klimatyzacją**: Obwody grzewcze z możliwością ustawienia temperatury i trybu pracy
 - **Tryby pracy**: Przełączanie między trybem zima/lato oraz auto/ręczny
 - **Parametry regulatora**: Czasy pracy podajnika, moc dmuchawy, temperatura spalin
 - **Parametry numeryczne**: Ustawianie setpointów, czasów pracy z walidacją zakresów (jako pola tekstowe)
 - **Czujniki paliwa**: Poziom paliwa, czas pracy podajnika, daty zasypania
-- **Status wyjść**: Monitoring stanu pomp, dmuchawy, zaworu 4D
-- **Alarmy**: Binarne czujniki alarmów systemowych
+- **Status wyjść**: Monitoring stanu pomp, dmuchawy
+- **Pozycja zaworu 4D**: Monitoring pozycji zaworu
 - **Daty**: Aktualna data, ostatnia data zasypu, data kolejnego zasypu
 
 ## Instalacja
@@ -118,11 +117,6 @@ Wszystkie encje są tworzone automatycznie. Jeśli nie potrzebujesz niektórych 
 
 ### Klimatyzacja (Climate)
 
-Obwody grzewcze (tworzone tylko jeśli aktywne w sterowniku):
-- Ustawianie temperatury docelowej
-- Wybór trybu pracy (OFF, HEAT, AUTO)
-- Włączanie/wyłączanie
-
 ### Przełączniki (Switches)
 
 **Tryby pracy:**
@@ -160,22 +154,21 @@ Wszystkie parametry wyświetlane jako pola tekstowe do wpisania wartości:
 - `out_miesz` - Pompa dodatkowa
 - `out_dm` - Dmuchawa
 
-**Alarmy systemowe:**
-- Przegrzanie kotła/CWU
-- Niska temperatura kotła/CWU
-- Brak/niski poziom paliwa
-- Awarie: pomp, dmuchawy, podajnika, zapalarki
-- Błędy czujników temperatury i ciśnienia
-- Błędy komunikacji i zasilania
-- Alarmy obwodów grzewczych (1-6)
-- Alarm ogólny i serwisowy
-
 
 ## Wymagania
 
 - Home Assistant 2023.1.0 lub nowszy
 - Sterownik eCoal z dostępem przez HTTP
 - Python 3.10+
+
+## ⚠️ Ważne zmiany w wersji 1.0.0+
+
+Z integracji zostały **usunięte** następujące elementy w celu uproszczenia:
+
+- ❌ **Wszystkie alarmy (24 czujniki binarne)** - Alarmy kotła, paliwa, CWU, urządzeń, czujników i systemu
+- ❌ **Regulatory temperatury (Climate)** - Obwody grzewcze 1-6
+
+✅ **Pozostałe funkcje działają normalnie**: temperatury, parametry, wyjścia, tryby pracy, pozycja zaworu 4D.
 
 ## Rozwiązywanie problemów
 

@@ -16,7 +16,7 @@ async def test_binary_sensor_setup(hass: HomeAssistant, mock_config_entry, mock_
     
     await async_setup_entry(hass, mock_config_entry, async_add_entities)
     
-    # Should add both output sensors and alarm sensors
+    # Should add only output sensors (alarms removed)
     assert async_add_entities.called
 
 
@@ -52,47 +52,17 @@ def test_output_sensor_is_off(mock_coordinator):
     assert sensor.is_on is False
 
 
-def test_alarm_sensor_is_on(mock_coordinator):
-    """Test alarm binary sensor is_on when alarm active."""
-    mock_coordinator.data["alarm_kot_przegrzanie"] = "1"
-    
-    alarm = EkopiecBinarySensor(
-        mock_coordinator,
-        "alarm_kot_przegrzanie",
-        {
-            "name": "Boiler Overheating",
-            "device_class": "problem",
-        }
-    )
-    
-    assert alarm.is_on is True
-
-
-def test_alarm_sensor_is_off(mock_coordinator):
-    """Test alarm binary sensor is_off when alarm inactive."""
-    alarm = EkopiecBinarySensor(
-        mock_coordinator,
-        "alarm_kot_przegrzanie",
-        {
-            "name": "Boiler Overheating",
-            "device_class": "problem",
-        }
-    )
-    
-    assert alarm.is_on is False
-
-
 def test_binary_sensor_string_values(mock_coordinator):
     """Test binary sensor with string values."""
-    mock_coordinator.data["alarm_test"] = "active"
+    mock_coordinator.data["out_dm"] = "active"
     
-    alarm = EkopiecBinarySensor(
+    sensor = EkopiecBinarySensor(
         mock_coordinator,
-        "alarm_test",
+        "out_dm",
         {
-            "name": "Test Alarm",
-            "device_class": "problem",
+            "name": "Dmuchawa",
+            "device_class": "running",
         }
     )
     
-    assert alarm.is_on is True
+    assert sensor.is_on is True

@@ -38,105 +38,6 @@ OUTPUT_TYPES: dict[str, dict[str, Any]] = {
     },
 }
 
-# Alarm sensors
-ALARM_TYPES: dict[str, dict[str, Any]] = {
-    "alarm_kot_przegrzanie": {
-        "name": "Boiler Overheating",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_kot_niska_temp": {
-        "name": "Boiler Low Temperature",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_paliwo_brak": {
-        "name": "No Fuel",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_paliwo_niski": {
-        "name": "Low Fuel",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_cwu_przegrzanie": {
-        "name": "DHW Overheating",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_cwu_niska_temp": {
-        "name": "DHW Low Temperature",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_cisnienie": {
-        "name": "Pressure Alarm",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_pompa_kotla": {
-        "name": "Boiler Pump Failure",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_pompa_cwu": {
-        "name": "DHW Pump Failure",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_dmuchawa": {
-        "name": "Blower Failure",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_podajnik": {
-        "name": "Feeder Failure",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_zapalarka": {
-        "name": "Igniter Failure",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_czujnik_temp": {
-        "name": "Temperature Sensor Failure",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_czujnik_cisnienia": {
-        "name": "Pressure Sensor Failure",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_komunikacja": {
-        "name": "Communication Error",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_zasilanie": {
-        "name": "Power Supply Error",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_ob1": {
-        "name": "Circuit 1 Alarm",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_ob2": {
-        "name": "Circuit 2 Alarm",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_ob3": {
-        "name": "Circuit 3 Alarm",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_ob4": {
-        "name": "Circuit 4 Alarm",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_ob5": {
-        "name": "Circuit 5 Alarm",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_ob6": {
-        "name": "Circuit 6 Alarm",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_ogolny": {
-        "name": "General Alarm",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-    "alarm_serwis": {
-        "name": "Service Required",
-        "device_class": BinarySensorDeviceClass.PROBLEM,
-    },
-}
 
 
 async def async_setup_entry(
@@ -152,10 +53,6 @@ async def async_setup_entry(
     # Create output status sensors
     for output_key, output_config in OUTPUT_TYPES.items():
         entities.append(EkopiecBinarySensor(coordinator, output_key, output_config))
-    
-    # Create alarm sensors
-    for alarm_key, alarm_config in ALARM_TYPES.items():
-        entities.append(EkopiecBinarySensor(coordinator, alarm_key, alarm_config))
     
     async_add_entities(entities)
 
