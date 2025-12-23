@@ -58,7 +58,7 @@ class EkopiecSwitch(CoordinatorEntity, SwitchEntity):
         super().__init__(coordinator)
         self._switch_key = switch_key
         self._config = config
-        device_sn = coordinator.data.get("device_sn", "unknown")
+        device_sn = (coordinator.data or {}).get("device_sn", "unknown")
         self._attr_unique_id = f"{device_sn}_{switch_key}"
         self._attr_has_entity_name = True
         self._attr_name = config["name"]
@@ -69,6 +69,15 @@ class EkopiecSwitch(CoordinatorEntity, SwitchEntity):
     def device_info(self):
         """Return device info."""
         return self.coordinator.device_info
+    
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        if not self.coordinator.last_update_success:
+            return False
+        if not self.coordinator.data:
+            return False
+        return self._switch_key in self.coordinator.data
     
     @property
     def is_on(self) -> bool:

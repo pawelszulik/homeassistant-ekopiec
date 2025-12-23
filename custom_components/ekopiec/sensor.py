@@ -144,7 +144,8 @@ class EkopiecSensor(CoordinatorEntity, SensorEntity):
         super().__init__(coordinator)
         self._sensor_key = sensor_key
         self._config = config
-        self._attr_unique_id = f"{coordinator.data.get('device_sn', 'unknown')}_{sensor_key}"
+        device_sn = (coordinator.data or {}).get("device_sn", "unknown")
+        self._attr_unique_id = f"{device_sn}_{sensor_key}"
         self._attr_has_entity_name = True
         self._attr_name = config["name"]
         
@@ -160,6 +161,15 @@ class EkopiecSensor(CoordinatorEntity, SensorEntity):
     def device_info(self):
         """Return device info."""
         return self.coordinator.device_info
+    
+    @property
+    def available(self) -> bool:
+        """Return if entity is available."""
+        if not self.coordinator.last_update_success:
+            return False
+        if not self.coordinator.data:
+            return False
+        return self._sensor_key in self.coordinator.data
     
     @property
     def native_value(self) -> str | float | datetime | None:
