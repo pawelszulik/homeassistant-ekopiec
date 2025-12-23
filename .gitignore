@@ -50,3 +50,4 @@ htmlcov/
 .dmypy.json
 dmypy.json
 
+.vs

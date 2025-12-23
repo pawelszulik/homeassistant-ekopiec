@@ -31,7 +31,7 @@ NUMBER_TYPES: dict[str, dict[str, Any]] = {
         "unit": UnitOfTemperature.CELSIUS,
         "min_value": 10,
         "max_value": 85,
-        "step": 0.5,
+        "step": 1,
     },
     "cwu_tzad": {
         "name": "Temperatura zadana CWU",
@@ -39,7 +39,7 @@ NUMBER_TYPES: dict[str, dict[str, Any]] = {
         "unit": UnitOfTemperature.CELSIUS,
         "min_value": 10,
         "max_value": 85,
-        "step": 0.5,
+        "step": 1,
     },
     "pomp_ton": {
         "name": "Temperatura załączenia pomp",
@@ -47,7 +47,7 @@ NUMBER_TYPES: dict[str, dict[str, Any]] = {
         "unit": UnitOfTemperature.CELSIUS,
         "min_value": 10,
         "max_value": 85,
-        "step": 0.5,
+        "step": 1,
     },
     # Feeder parameters - Maintenance mode
     "p_pod_on": {

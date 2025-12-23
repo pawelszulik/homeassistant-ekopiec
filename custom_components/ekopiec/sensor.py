@@ -1,6 +1,7 @@
 """Sensor platform for ekopiec integration."""
 from __future__ import annotations
 
+from datetime import datetime
 import logging
 from typing import Any
 
@@ -161,11 +162,25 @@ class EkopiecSensor(CoordinatorEntity, SensorEntity):
         return self.coordinator.device_info
     
     @property
-    def native_value(self) -> str | float | None:
+    def native_value(self) -> str | float | datetime | None:
         """Return the state of the sensor."""
         value = self.coordinator.data.get(self._sensor_key)
         if value is None:
             return None
+        
+        # Handle timestamp sensors - convert ISO string to datetime object
+        if self._config.get("device_class") == SensorDeviceClass.TIMESTAMP:
+            if isinstance(value, str):
+                try:
+                    # Parse ISO format string to datetime
+                    dt = datetime.fromisoformat(value)
+                    # If datetime is naive, make it aware using HA timezone
+                    if dt.tzinfo is None:
+                        dt = dt.replace(tzinfo=self.coordinator.hass.config.time_zone)
+                    return dt
+                except (ValueError, TypeError) as err:
+                    _LOGGER.warning("Cannot parse timestamp for %s: %s", self._sensor_key, err)
+                    return None
         
         # Try to convert to float for numeric values
         try:
