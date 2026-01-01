@@ -103,13 +103,33 @@ class EkopiecDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
                 _LOGGER.warning("Cannot convert timestamp for %s (%s): %s", field, timestamp_value, err)
                 data[field] = None
         
-        # datetime field is already in ISO format (2025-11-17T22:45:33Z), just validate it
+        # datetime field - can be Unix timestamp or ISO format string
         datetime_value = data.get("datetime")
-        if datetime_value and isinstance(datetime_value, str):
-            # Remove 'Z' suffix if present and ensure it's valid
-            if datetime_value.endswith('Z'):
-                data["datetime"] = datetime_value[:-1]
-            _LOGGER.debug("Datetime field: %s", data["datetime"])
+        if datetime_value is None:
+            return
+        
+        try:
+            # Check if it's a Unix timestamp
+            if isinstance(datetime_value, str) and datetime_value.isdigit():
+                # Unix timestamp as string
+                timestamp = int(datetime_value)
+                dt = datetime.fromtimestamp(timestamp)
+                data["datetime"] = dt.isoformat()
+                _LOGGER.debug("Converted datetime from Unix timestamp: %s -> %s", timestamp, data["datetime"])
+            elif isinstance(datetime_value, (int, float)):
+                # Unix timestamp as number
+                timestamp = int(datetime_value)
+                dt = datetime.fromtimestamp(timestamp)
+                data["datetime"] = dt.isoformat()
+                _LOGGER.debug("Converted datetime from Unix timestamp: %s -> %s", timestamp, data["datetime"])
+            elif isinstance(datetime_value, str):
+                # ISO format string - remove 'Z' suffix if present
+                if datetime_value.endswith('Z'):
+                    data["datetime"] = datetime_value[:-1]
+                _LOGGER.debug("Datetime field (ISO format): %s", data["datetime"])
+        except (ValueError, OSError, OverflowError) as err:
+            _LOGGER.warning("Cannot convert datetime field (%s): %s", datetime_value, err)
+            # Keep original value if conversion fails
     
     async def set_parameter_with_limit(
         self, 

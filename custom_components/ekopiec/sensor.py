@@ -19,6 +19,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.config_entries import ConfigEntry
+from homeassistant.util import dt as dt_util
 
 from .const import DOMAIN
 from .coordinator import EkopiecDataUpdateCoordinator
@@ -178,19 +179,36 @@ class EkopiecSensor(CoordinatorEntity, SensorEntity):
         if value is None:
             return None
         
-        # Handle timestamp sensors - convert ISO string to datetime object
+        # Handle timestamp sensors - convert to datetime object
         if self._config.get("device_class") == SensorDeviceClass.TIMESTAMP:
-            if isinstance(value, str):
-                try:
-                    # Parse ISO format string to datetime
+            try:
+                dt = None
+                
+                # Check if value is a Unix timestamp (string with digits or int/float)
+                if isinstance(value, str) and value.isdigit():
+                    # Unix timestamp as string
+                    timestamp = int(value)
+                    dt = datetime.fromtimestamp(timestamp, tz=dt_util.DEFAULT_TIME_ZONE)
+                elif isinstance(value, (int, float)):
+                    # Unix timestamp as number
+                    timestamp = int(value)
+                    dt = datetime.fromtimestamp(timestamp, tz=dt_util.DEFAULT_TIME_ZONE)
+                elif isinstance(value, str):
+                    # Try to parse as ISO format string
                     dt = datetime.fromisoformat(value)
                     # If datetime is naive, make it aware using HA timezone
                     if dt.tzinfo is None:
-                        dt = dt.replace(tzinfo=self.coordinator.hass.config.time_zone)
+                        tz = dt_util.get_time_zone(self.coordinator.hass.config.time_zone)
+                        if tz is None:
+                            tz = dt_util.DEFAULT_TIME_ZONE
+                        dt = dt.replace(tzinfo=tz)
+                
+                if dt is not None:
                     return dt
-                except (ValueError, TypeError) as err:
-                    _LOGGER.warning("Cannot parse timestamp for %s: %s", self._sensor_key, err)
-                    return None
+                    
+            except (ValueError, TypeError, OSError, OverflowError) as err:
+                _LOGGER.warning("Cannot parse timestamp for %s: %s", self._sensor_key, err)
+                return None
         
         # Try to convert to float for numeric values
         try:
