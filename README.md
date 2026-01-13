@@ -92,6 +92,7 @@ Wszystkie encje są tworzone automatycznie. Jeśli nie potrzebujesz niektórych 
 - `kot_tzad` - Temperatura zadana kotła
 - `cwu_tzad` - Temperatura zadana CWU
 - `pomp_ton` - Temperatura załączenia pomp
+- `tpow_min` - Minimalna temperatura powrotu
 
 **Parametry podajnika (tylko odczyt):**
 - `p_pod_on` - Czas pracy podajnika - Podtrzymanie
@@ -131,6 +132,7 @@ Wszystkie parametry wyświetlane jako pola tekstowe do wpisania wartości:
 - `kot_tzad` - Temperatura zadana kotła (10-85°C)
 - `cwu_tzad` - Temperatura zadana CWU (10-85°C)
 - `pomp_ton` - Temperatura załączenia pomp (10-85°C)
+- `tpow_min` - Minimalna temperatura powrotu (10-85°C)
 
 **Parametry podajnika - Podtrzymanie:**
 - `p_pod_on` - Czas pracy podajnika (1-300s)

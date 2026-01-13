@@ -51,6 +51,7 @@ def sample_device_data():
         "kot_tzad": "70.0",
         "cwu_tzad": "60.0",
         "pomp_ton": "45.0",
+        "tpow_min": "40.0",
         # Feeder parameters
         "p_pod_on": "15",
         "p_pod_off": "120",

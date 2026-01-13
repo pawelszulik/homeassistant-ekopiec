@@ -49,6 +49,14 @@ NUMBER_TYPES: dict[str, dict[str, Any]] = {
         "max_value": 85,
         "step": 1,
     },
+    "tpow_min": {
+        "name": "Minimalna temperatura powrotu",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "min_value": 10,
+        "max_value": 85,
+        "step": 1,
+    },
     # Feeder parameters - Maintenance mode
     "p_pod_on": {
         "name": "Czas pracy podajnika - Podtrzymanie",

@@ -41,6 +41,12 @@ SENSOR_TYPES: dict[str, dict[str, Any]] = {
         "unit": UnitOfTemperature.CELSIUS,
         "state_class": SensorStateClass.MEASUREMENT,
     },
+    "tpow_min": {
+        "name": "Minimalna temperatura powrotu",
+        "device_class": SensorDeviceClass.TEMPERATURE,
+        "unit": UnitOfTemperature.CELSIUS,
+        "state_class": SensorStateClass.MEASUREMENT,
+    },
     "tpod_value": {
         "name": "Temperatura podajnika",
         "device_class": SensorDeviceClass.TEMPERATURE,
