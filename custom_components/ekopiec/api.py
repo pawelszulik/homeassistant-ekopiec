@@ -7,6 +7,8 @@ from typing import Any, Dict, Optional
 import aiohttp
 import async_timeout
 
+from .const import API_TIMEOUT, RETRY_DELAY
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -82,33 +84,84 @@ class ECoalApiClient:
             raise
     
     async def get_all_data(self) -> Dict[str, Any]:
-        """Fetch all data from /syncvalues.cgi endpoint."""
+        """Fetch all data from /syncvalues.cgi endpoint with retry logic.
+        
+        Retry logic:
+            - 3 maximum attempts (2 retries)
+            - 1 second delay between retries
+            - Retries on timeout or network errors
+        """
         url = f"{self.base_url}/syncvalues.cgi"
         
         if self._session is None:
             raise RuntimeError("Session not initialized")
         
-        try:
-            async with async_timeout.timeout(15):
-                async with self._session.get(url, auth=self._auth) as response:
-                    if response.status == 401:
-                        raise AuthenticationError("Invalid credentials")
-                    
-                    if response.status == 200:
-                        content = await response.text()
-                        
-                        # Try JSON first, then decode custom format
-                        if content.strip().startswith("{"):
-                            return await response.json()
-                        else:
-                            return self._decode_syncvalues(content)
-                    else:
-                        raise ConnectionError(f"HTTP {response.status}")
+        max_retries = 3
+        retry_count = 0
         
-        except asyncio.TimeoutError as err:
-            raise ConnectionError("API timeout") from err
-        except aiohttp.ClientError as err:
-            raise ConnectionError(f"Connection error: {err}") from err
+        while retry_count < max_retries:
+            try:
+                async with async_timeout.timeout(API_TIMEOUT):
+                    async with self._session.get(url, auth=self._auth) as response:
+                        if response.status == 401:
+                            raise AuthenticationError("Invalid credentials")
+                        
+                        if response.status == 200:
+                            content = await response.text()
+                            
+                            # Try JSON first, then decode custom format
+                            if content.strip().startswith("{"):
+                                return await response.json()
+                            else:
+                                return self._decode_syncvalues(content)
+                        else:
+                            _LOGGER.warning(
+                                "HTTP %s (attempt %d/%d)",
+                                response.status, retry_count + 1, max_retries
+                            )
+                            retry_count += 1
+                            if retry_count < max_retries:
+                                _LOGGER.debug(
+                                    "Retrying in %d second(s) (attempt %d/%d)...",
+                                    RETRY_DELAY, retry_count + 1, max_retries
+                                )
+                                await asyncio.sleep(RETRY_DELAY)
+                                continue
+                            raise ConnectionError(f"HTTP {response.status}")
+            
+            except asyncio.TimeoutError:
+                _LOGGER.warning(
+                    "API timeout (attempt %d/%d)",
+                    retry_count + 1, max_retries
+                )
+                retry_count += 1
+                if retry_count < max_retries:
+                    _LOGGER.debug(
+                        "Retrying in %d second(s) (attempt %d/%d)...",
+                        RETRY_DELAY, retry_count + 1, max_retries
+                    )
+                    await asyncio.sleep(RETRY_DELAY)
+                    continue
+                raise ConnectionError("API timeout") from None
+            
+            except aiohttp.ClientError as err:
+                _LOGGER.warning(
+                    "Connection error: %s (attempt %d/%d)",
+                    err, retry_count + 1, max_retries
+                )
+                retry_count += 1
+                if retry_count < max_retries:
+                    _LOGGER.debug(
+                        "Retrying in %d second(s) (attempt %d/%d)...",
+                        RETRY_DELAY, retry_count + 1, max_retries
+                    )
+                    await asyncio.sleep(RETRY_DELAY)
+                    continue
+                raise ConnectionError(f"Connection error: {err}") from err
+            
+            except AuthenticationError:
+                # Don't retry on authentication errors
+                raise
     
     async def set_parameter(self, parameter: str, value: Any) -> bool:
         """Set parameter on the controller with retry logic.
@@ -136,7 +189,7 @@ class ECoalApiClient:
         
         while retry_count < max_retries:
             try:
-                async with async_timeout.timeout(15):
+                async with async_timeout.timeout(API_TIMEOUT):
                     async with self._session.get(
                         url,
                         params=params,

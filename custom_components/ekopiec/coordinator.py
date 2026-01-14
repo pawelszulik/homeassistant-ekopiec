@@ -57,7 +57,17 @@ class EkopiecDataUpdateCoordinator(DataUpdateCoordinator[Dict[str, Any]]):
             
         except AuthenticationError as err:
             raise ConfigEntryAuthFailed("Authentication failed") from err
+        except ConnectionError as err:
+            # Dla timeout/błędów połączenia - zachowaj poprzednie dane
+            if self.data:
+                _LOGGER.warning("Connection error, using previous data: %s", err)
+                return self.data
+            raise UpdateFailed(f"Error communicating with controller: {err}") from err
         except Exception as err:
+            # Dla innych błędów - również zachowaj poprzednie dane jeśli to możliwe
+            if self.data and "timeout" in str(err).lower():
+                _LOGGER.warning("Timeout error, using previous data: %s", err)
+                return self.data
             raise UpdateFailed(f"Error communicating with controller: {err}") from err
     
     def _convert_timestamps(self, data: Dict[str, Any]) -> None:

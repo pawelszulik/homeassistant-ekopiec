@@ -1,5 +1,6 @@
 """Tests for API client."""
 import pytest
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 import aiohttp
 import xml.etree.ElementTree as ET
@@ -55,11 +56,18 @@ async def test_get_all_data_success(api_client):
     mock_response.text = AsyncMock(return_value="1731657600;device_sn:AB123CD;tkot_value:65.5")
     mock_response.json = AsyncMock()
     
-    api_client._session.get = AsyncMock(return_value=mock_response)
-    api_client._session.get.return_value.__aenter__ = AsyncMock(return_value=mock_response)
-    api_client._session.get.return_value.__aexit__ = AsyncMock(return_value=None)
+    # Create proper async context manager for session.get
+    mock_get_context = AsyncMock()
+    mock_get_context.__aenter__ = AsyncMock(return_value=mock_response)
+    mock_get_context.__aexit__ = AsyncMock(return_value=None)
+    api_client._session.get = MagicMock(return_value=mock_get_context)
     
-    with patch("async_timeout.timeout"):
+    # Mock async_timeout.timeout as async context manager
+    mock_timeout = MagicMock()
+    mock_timeout.__aenter__ = AsyncMock(return_value=None)
+    mock_timeout.__aexit__ = AsyncMock(return_value=None)
+    
+    with patch("custom_components.ekopiec.api.async_timeout.timeout", return_value=mock_timeout):
         result = await api_client.get_all_data()
     
     assert result["device_sn"] == "AB123CD"
@@ -72,11 +80,18 @@ async def test_get_all_data_authentication_error(api_client):
     mock_response = AsyncMock()
     mock_response.status = 401
     
-    api_client._session.get = AsyncMock(return_value=mock_response)
-    api_client._session.get.return_value.__aenter__ = AsyncMock(return_value=mock_response)
-    api_client._session.get.return_value.__aexit__ = AsyncMock(return_value=None)
+    # Create proper async context manager for session.get
+    mock_get_context = AsyncMock()
+    mock_get_context.__aenter__ = AsyncMock(return_value=mock_response)
+    mock_get_context.__aexit__ = AsyncMock(return_value=None)
+    api_client._session.get = MagicMock(return_value=mock_get_context)
     
-    with patch("async_timeout.timeout"):
+    # Mock async_timeout.timeout as async context manager
+    mock_timeout = MagicMock()
+    mock_timeout.__aenter__ = AsyncMock(return_value=None)
+    mock_timeout.__aexit__ = AsyncMock(return_value=None)
+    
+    with patch("custom_components.ekopiec.api.async_timeout.timeout", return_value=mock_timeout):
         with pytest.raises(AuthenticationError):
             await api_client.get_all_data()
 
@@ -88,11 +103,18 @@ async def test_set_parameter_success(api_client):
     mock_response.status = 200
     mock_response.text = AsyncMock(return_value="<cmd status='ok'></cmd>")
     
-    api_client._session.get = AsyncMock(return_value=mock_response)
-    api_client._session.get.return_value.__aenter__ = AsyncMock(return_value=mock_response)
-    api_client._session.get.return_value.__aexit__ = AsyncMock(return_value=None)
+    # Create proper async context manager for session.get
+    mock_get_context = AsyncMock()
+    mock_get_context.__aenter__ = AsyncMock(return_value=mock_response)
+    mock_get_context.__aexit__ = AsyncMock(return_value=None)
+    api_client._session.get = MagicMock(return_value=mock_get_context)
     
-    with patch("async_timeout.timeout"):
+    # Mock async_timeout.timeout as async context manager
+    mock_timeout = MagicMock()
+    mock_timeout.__aenter__ = AsyncMock(return_value=None)
+    mock_timeout.__aexit__ = AsyncMock(return_value=None)
+    
+    with patch("custom_components.ekopiec.api.async_timeout.timeout", return_value=mock_timeout):
         result = await api_client.set_parameter("kot_tzad", 70.0)
     
     assert result is True
@@ -105,11 +127,18 @@ async def test_set_parameter_error(api_client):
     mock_response.status = 200
     mock_response.text = AsyncMock(return_value="<cmd status='error'></cmd>")
     
-    api_client._session.get = AsyncMock(return_value=mock_response)
-    api_client._session.get.return_value.__aenter__ = AsyncMock(return_value=mock_response)
-    api_client._session.get.return_value.__aexit__ = AsyncMock(return_value=None)
+    # Create proper async context manager for session.get
+    mock_get_context = AsyncMock()
+    mock_get_context.__aenter__ = AsyncMock(return_value=mock_response)
+    mock_get_context.__aexit__ = AsyncMock(return_value=None)
+    api_client._session.get = MagicMock(return_value=mock_get_context)
     
-    with patch("async_timeout.timeout"):
+    # Mock async_timeout.timeout as async context manager
+    mock_timeout = MagicMock()
+    mock_timeout.__aenter__ = AsyncMock(return_value=None)
+    mock_timeout.__aexit__ = AsyncMock(return_value=None)
+    
+    with patch("custom_components.ekopiec.api.async_timeout.timeout", return_value=mock_timeout):
         result = await api_client.set_parameter("kot_tzad", 70.0)
     
     assert result is False
@@ -127,11 +156,93 @@ async def test_set_parameter_retry(api_client):
     mock_response_ok.status = 200
     mock_response_ok.text = AsyncMock(return_value="<cmd status='ok'></cmd>")
     
-    api_client._session.get = AsyncMock(side_effect=[mock_response_error, mock_response_ok])
+    # Create proper async context managers for session.get
+    mock_get_context_1 = AsyncMock()
+    mock_get_context_1.__aenter__ = AsyncMock(return_value=mock_response_error)
+    mock_get_context_1.__aexit__ = AsyncMock(return_value=None)
     
-    with patch("async_timeout.timeout"):
+    mock_get_context_2 = AsyncMock()
+    mock_get_context_2.__aenter__ = AsyncMock(return_value=mock_response_ok)
+    mock_get_context_2.__aexit__ = AsyncMock(return_value=None)
+    
+    api_client._session.get = MagicMock(side_effect=[mock_get_context_1, mock_get_context_2])
+    
+    # Mock async_timeout.timeout as async context manager
+    mock_timeout = MagicMock()
+    mock_timeout.__aenter__ = AsyncMock(return_value=None)
+    mock_timeout.__aexit__ = AsyncMock(return_value=None)
+    
+    with patch("custom_components.ekopiec.api.async_timeout.timeout", return_value=mock_timeout):
         with patch("asyncio.sleep"):
             result = await api_client.set_parameter("kot_tzad", 70.0)
     
     assert result is True
+    assert api_client._session.get.call_count == 2
+
+
+@pytest.mark.asyncio
+async def test_get_all_data_retry_on_timeout(api_client):
+    """Test get_all_data retry logic on timeout."""
+    # First call times out, second succeeds
+    mock_response_ok = AsyncMock()
+    mock_response_ok.status = 200
+    mock_response_ok.text = AsyncMock(return_value="1731657600;device_sn:AB123CD;tkot_value:65.5")
+    mock_response_ok.json = AsyncMock()
+    
+    # Create proper async context manager for session.get (only second call succeeds)
+    mock_get_context = AsyncMock()
+    mock_get_context.__aenter__ = AsyncMock(return_value=mock_response_ok)
+    mock_get_context.__aexit__ = AsyncMock(return_value=None)
+    api_client._session.get = MagicMock(return_value=mock_get_context)
+    
+    # Mock timeout on first call (timeout occurs in __aenter__), success on second
+    # When timeout occurs, _session.get is not called, so we only expect 1 call
+    timeout_context_1 = MagicMock()
+    timeout_context_1.__aenter__ = AsyncMock(side_effect=asyncio.TimeoutError())
+    timeout_context_1.__aexit__ = AsyncMock(return_value=None)
+    
+    timeout_context_2 = MagicMock()
+    timeout_context_2.__aenter__ = AsyncMock(return_value=None)
+    timeout_context_2.__aexit__ = AsyncMock(return_value=None)
+    
+    with patch("custom_components.ekopiec.api.async_timeout.timeout", side_effect=[timeout_context_1, timeout_context_2]):
+        with patch("asyncio.sleep"):
+            result = await api_client.get_all_data()
+    
+    assert result["device_sn"] == "AB123CD"
+    # When timeout occurs in __aenter__, _session.get is not called in first attempt
+    # So we expect only 1 call (second attempt succeeds)
+    assert api_client._session.get.call_count == 1
+
+
+@pytest.mark.asyncio
+async def test_get_all_data_retry_on_connection_error(api_client):
+    """Test get_all_data retry logic on connection error."""
+    # First call fails with connection error, second succeeds
+    mock_response_ok = AsyncMock()
+    mock_response_ok.status = 200
+    mock_response_ok.text = AsyncMock(return_value="1731657600;device_sn:AB123CD;tkot_value:65.5")
+    mock_response_ok.json = AsyncMock()
+    
+    # Create proper async context managers for session.get
+    mock_get_context_1 = AsyncMock()
+    mock_get_context_1.__aenter__ = AsyncMock(side_effect=aiohttp.ClientError("Connection failed"))
+    mock_get_context_1.__aexit__ = AsyncMock(return_value=None)
+    
+    mock_get_context_2 = AsyncMock()
+    mock_get_context_2.__aenter__ = AsyncMock(return_value=mock_response_ok)
+    mock_get_context_2.__aexit__ = AsyncMock(return_value=None)
+    
+    api_client._session.get = MagicMock(side_effect=[mock_get_context_1, mock_get_context_2])
+    
+    # Mock async_timeout.timeout as async context manager
+    mock_timeout = MagicMock()
+    mock_timeout.__aenter__ = AsyncMock(return_value=None)
+    mock_timeout.__aexit__ = AsyncMock(return_value=None)
+    
+    with patch("custom_components.ekopiec.api.async_timeout.timeout", return_value=mock_timeout):
+        with patch("asyncio.sleep"):
+            result = await api_client.get_all_data()
+    
+    assert result["device_sn"] == "AB123CD"
     assert api_client._session.get.call_count == 2

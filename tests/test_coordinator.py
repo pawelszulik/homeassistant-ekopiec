@@ -5,6 +5,7 @@ from homeassistant.core import HomeAssistant
 
 from custom_components.ekopiec.coordinator import EkopiecDataUpdateCoordinator
 from custom_components.ekopiec.api import ECoalApiClient, AuthenticationError
+from homeassistant.helpers.update_coordinator import UpdateFailed
 
 
 @pytest.mark.asyncio
@@ -104,3 +105,31 @@ def test_convert_timestamps_invalid(hass: HomeAssistant, mock_api_client):
     # Invalid timestamps should be set to None
     assert data["add_fuel_time"] is None
     assert data["next_fuel_time"] is None
+
+
+@pytest.mark.asyncio
+async def test_update_data_connection_error_preserves_data(hass: HomeAssistant, mock_api_client, sample_device_data):
+    """Test that connection errors preserve previous data."""
+    coordinator = EkopiecDataUpdateCoordinator(hass, mock_api_client)
+    coordinator.data = sample_device_data  # Set previous data
+    
+    mock_api_client.get_all_data = AsyncMock(side_effect=ConnectionError("API timeout"))
+    
+    # Should return previous data instead of raising UpdateFailed
+    result = await coordinator._async_update_data()
+    
+    assert result == sample_device_data
+    assert result["device_sn"] == "AB123CD"
+
+
+@pytest.mark.asyncio
+async def test_update_data_connection_error_no_previous_data(hass: HomeAssistant, mock_api_client):
+    """Test that connection errors raise UpdateFailed when no previous data."""
+    coordinator = EkopiecDataUpdateCoordinator(hass, mock_api_client)
+    coordinator.data = None  # No previous data
+    
+    mock_api_client.get_all_data = AsyncMock(side_effect=ConnectionError("API timeout"))
+    
+    # Should raise UpdateFailed when no previous data
+    with pytest.raises(UpdateFailed):
+        await coordinator._async_update_data()

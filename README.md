@@ -30,7 +30,7 @@ Skopiuj zawartość tego repozytorium do katalogu `/config/custom_components` w 
 
 ```bash
 cd /config/custom_components
-##rm -rf ekopiec
+rm -rf ekopiec
 git clone https://github.com/pawelszulik/homeassistant-ekopiec
 cp -r homeassistant-ekopiec/custom_components/ekopiec .
 rm -rf homeassistant-ekopiec
